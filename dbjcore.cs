@@ -1,0 +1,393 @@
+#define DO_NOT_CONSOLE
+// above redirects Writeln to log.info and Writerr to log.error
+// using System;
+// using System.IO;
+using System.Diagnostics;
+using System.Reflection;
+using System.Runtime.CompilerServices;
+using System.Text;
+using Serilog;
+
+using System.Text.Json.Nodes;
+using Microsoft.Extensions.Configuration;
+using System.Net.Sockets;
+using System.Net;
+using System.Text.RegularExpressions;
+
+// use like this:
+// using static dbjcore;
+// after which you can just use the method names 
+// from the class utl in here
+// without a class name and dot in front, for example:
+// Writeln( Whoami() );
+
+namespace dbjcore;
+
+#region common utilities
+internal sealed class dbjcore
+{
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static string my_domain(bool up_ = false)
+    {
+        Lazy<string> lazy_ = new Lazy<string>(
+            () => Environment.UserDomainName.ToString()
+        );
+        return lazy_.Value;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static string guid_word(bool up_ = false)
+    {
+        // wow, what a cludge, don't do this at home ;)
+        // wait of 1 mili sec so that guids 
+        // are sufficiently different
+        System.Threading.Thread.Sleep(1);
+        string input = Guid.NewGuid().ToString("N");
+        input = up_ ? input.ToUpper() : input.ToLower();
+        // remove numbers
+        return Regex.Replace(input, @"[\d-]", string.Empty);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static string local_now()
+    {
+        return DateTime.Now.ToLocalTime().ToString();
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static string Whoami([CallerMemberName] string? caller_name = null)
+    {
+        if (string.IsNullOrEmpty(caller_name))
+            return "unknown";
+        if (string.IsNullOrWhiteSpace(caller_name))
+            return "unknown";
+        return caller_name;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool Assert(bool condition_)
+    {
+        System.Diagnostics.Debug.Assert(condition_);
+        return condition_;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static string Name()
+    {
+        return Assembly.GetExecutingAssembly().GetName().FullName;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool Writeln(string? payload = null)
+    {
+        if (payload is not null)
+        {
+#if DO_NOT_CONSOLE
+            log.info(payload);
+#else
+        Console.WriteLine(payload);
+#endif
+            return true;
+        }
+        return false;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool Writerr(string? payload = null)
+    {
+        if (payload is not null)
+        {
+#if DO_NOT_CONSOLE
+            log.error(payload);
+#else
+        Console.WriteLine(payload);
+#endif
+            return true;
+        }
+        return false;
+    }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool Writedbg(string? payload = null)
+    {
+        if (payload is not null)
+        {
+#if DO_NOT_CONSOLE
+            log.debug(payload);
+#else
+        Console.WriteLine(payload);
+#endif
+            return true;
+        }
+        return false;
+    }
+
+    /*
+     * string test = "Testing 1-2-3";
+
+    // convert string to stream
+    byte[] byteArray = Encoding.ASCII.GetBytes(test);
+    MemoryStream stream = new MemoryStream(byteArray);
+
+    // convert stream to string
+    StreamReader reader = new StreamReader(stream);
+    string text = reader.ReadToEnd();
+     */
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static System.IO.Stream ToStream(string sval_)
+    {
+        byte[] byteArray = Encoding.ASCII.GetBytes(sval_);
+        return new MemoryStream(byteArray);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static string ToString(System.IO.Stream sval_)
+    {
+        StreamReader reader = new StreamReader(sval_);
+        return reader.ReadToEnd();
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static string ToUTF8(string sval_)
+    {
+        byte[] bytes = Encoding.Default.GetBytes(sval_);
+        return Encoding.UTF8.GetString(bytes);
+    }
+
+    /*
+    this is where log instance is made on demand once 
+    and not before called the first call
+    */
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static string local_ip()
+    {
+        Lazy<string> lazyIP = new Lazy<string>(
+            () =>
+            {
+                using (Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, 0))
+                {
+                    try
+                    {
+                        socket.Connect("8.8.8.8", 65530);
+                        IPEndPoint endPoint = (IPEndPoint)socket.LocalEndPoint!;
+                        return endPoint!.Address.ToString();
+                    }
+                    catch (Exception)
+                    {
+#if DEBUG
+                        log.error($"No local IP found from the socket");
+#endif
+                        return "127.0.01";
+                    }
+                }
+            }
+        );
+
+        return lazyIP.Value;
+    }
+
+} // Program_context
+
+#endregion common utilities
+
+///////////////////////////////////////////////////////////////////////////////////////
+#region logging
+///////////////////////////////////////////////////////////////////////////////////////
+
+/*
+$ dotnet add package Serilog
+$ dotnet add package Serilog.Sinks.Console
+$ dotnet add package Serilog.Sinks.File
+*/
+internal sealed class log
+{
+    public readonly static string text_line = "-------------------------------------------------------------------------------";
+    public readonly static string app_friendly_name = AppDomain.CurrentDomain.FriendlyName;
+
+    static string app_name
+    {
+        get
+        {
+            return app_friendly_name; //  app_friendly_name.Substring(0, app_friendly_name.IndexOf('.'));
+        }
+    }
+
+    // this path is obviously deeply wrong :P
+    // ROADMAP: it will be externaly configurable
+    public readonly static string log_file_path_template_ = "{0}logs\\{1}.log";
+
+    public log()
+    {
+        string log_file_path_ = string.Format(log_file_path_template_, AppContext.BaseDirectory, app_name);
+
+        Log.Logger = new LoggerConfiguration()
+           .MinimumLevel.Debug()
+           .WriteTo.File(log_file_path_, rollingInterval: RollingInterval.Day)
+           .CreateLogger();
+
+        Log.Information(text_line);
+        Log.Information($"[{System.DateTime.Now.ToLocalTime().ToString()}] Starting {app_name}");
+        Log.Information($"Launched from {Environment.CurrentDirectory}");
+        Log.Information($"Physical location {AppDomain.CurrentDomain.BaseDirectory}");
+#if DEBUG
+        Log.Debug($"AppContext.BaseDir {AppContext.BaseDirectory}");
+        Log.Debug("This app is built in a DEBUG mode");
+#endif
+        Log.Information(text_line);
+        ProcessModule? pm_ = Process.GetCurrentProcess().MainModule;
+        if (pm_ != null)
+        {
+            Log.Information($"Runtime Call {Path.GetDirectoryName(pm_.FileName)}");
+        }
+        Log.Information($"Log file location:{log_file_path_}");
+        Log.Information(text_line);
+    }
+
+    ~log()
+    {
+        Log.CloseAndFlush();
+    }
+
+    internal void debug_(string msg_) { Log.Debug(msg_); }
+    internal void info_(string msg_) { Log.Information(msg_); }
+    internal void error_(string msg_) { Log.Error(msg_); }
+    internal void fatal_(string msg_) { Log.Fatal(msg_); }
+
+    // this is where log instance is made on demand once and not before called the first time
+    static Lazy<log> lazy_log = new Lazy<log>(() => new log());
+    static public log logger { get { return lazy_log.Value; } }
+
+    // calling one of these will lazy load the loger and then use it
+    // repeated calls will reuse the same instance
+    // log.info("where is this going then?");
+    public static void debug(string msg_) { logger.debug_(msg_); }
+    public static void info(string msg_) { logger.info_(msg_); }
+    public static void error(string msg_) { logger.error_(msg_); }
+    public static void fatal(string msg_) { logger.fatal_(msg_); }
+
+}
+
+#endregion logging
+
+///////////////////////////////////////////////////////////////////////////////////////
+#region configuration
+///////////////////////////////////////////////////////////////////////////////////////
+
+/*
+
+-------------------------------------------------------------------------------------------------------
+We/I am use/ing json as config file format
+------------------------------------------------------------------------------------------------------ -
+
+Ditto in the proj file there must be information where is the config json file
+and what is its name. Like so:
+    
+<ItemGroup>
+<Content Include="appsettings.json">
+<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+</Content>
+</ItemGroup>
+
+followed with section that adds the dot net components to use from the code
+
+<ItemGroup>
+<PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="6.0.0" />
+<PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="7.0.0" />
+<PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="7.0.0" />
+</ItemGroup>
+*/
+internal sealed class cfg
+{
+    IConfiguration config;
+    string config_file_name;
+    /*
+    config file name is completely 100% arbitrary
+    it is hidden as def. val constructor parameter
+    that is not a good thing
+    */
+    public cfg(string json_config_file = "appsettings.json")
+    {
+        config_file_name = json_config_file;
+        // Build a config object, using env vars and JSON providers.
+        config = new ConfigurationBuilder()
+      .AddJsonFile(json_config_file)
+      .AddEnvironmentVariables()
+      .Build();
+    }
+
+    // given path return value as string or empty string 
+    public string kpv(string path_)
+    {
+        try
+        {
+            var section_ = this.config.GetRequiredSection(path_);
+#if DEBUG
+            log.info($"cfg {utl.Whoami()}() for path: '{path_}'  -- key: '{section_.Key}', val: '{section_.Value}'");
+#endif
+            return section_.Value!;
+        }
+        catch (Exception x_)
+        {
+#if DEBUG
+            log.error($"No element in the cfg json found for the path: '{path_}'");
+#endif
+            log.error(x_.ToString());
+        }
+        return string.Empty;
+    }
+
+    /* 
+    given path return the value or default value cast to the required type
+    */
+    T read<T>(string path_, T default_)
+    {
+        try
+        {
+            var section_ = this.config.GetRequiredSection(path_);
+#if DEBUG
+            log.info($"cfg {utl.Whoami()}() -- path: '{path_}'  key:'{section_.Key}', val: '{section_.Value}'");
+#endif
+            return section_.Get<T>();
+        }
+        catch (Exception x_)
+        {
+#if DEBUG
+            log.error($"No element found for the path: '{path_}'");
+#endif
+            log.error(x_.ToString());
+        }
+#if DEBUG
+        log.error($"Returning the user defined default value");
+#endif
+        return default_; // not: default(T)!;
+    }
+
+    // this is where cfg is made on demand once 
+    // and not before it is called for the first time
+    static Lazy<cfg> lazy_cfg = new Lazy<cfg>(() => new cfg());
+
+    static public cfg instance { get { return lazy_cfg.Value; } }
+    //
+    // calling will lazy load the Configurator and then use it
+    //
+    // var ip1 = cfg.get<string>("ip1", "192.168.0.0");
+    //
+    public static T get<T>(string path_, T dflt_) { return instance.read<T>(path_, dflt_); }
+
+} // Config standardorum superiorum
+
+#endregion configuration
+
+// here we use the path syntax which it seems is not that well documented?
+// usage example, hint: guess the JSON ;) 
+//     
+//     var k1 = Config.read<int>("Settings:KeyOne", 42 );
+//     var k2 = Config.read<bool>("Settings:KeyTwo", true );
+//     var k3m = Config.read<string>("Settings:KeyThree:Message", "default message");
+//     var k3v1 = Config.read<string>("Settings:KeyThree:SupportedVersions:v1", "0.0.1");
+//     var k3v3 = Config.read<string>("Settings:KeyThree:SupportedVersions:v3", "3.0.0");
+//     arrays
+//     var ip_range = Config.read<string[]>("Settings:IPAddressRange", new string[]{"10.13.4.7","4.4.4.1"});
+//     var first_ip = ip_range[0];
+
+
