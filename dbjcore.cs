@@ -3,16 +3,15 @@
 // using System;
 // using System.IO;
 using System.Diagnostics;
+using System.Net;
+using System.Net.Sockets;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
-using Serilog;
-
 using System.Text.Json.Nodes;
-using Microsoft.Extensions.Configuration;
-using System.Net.Sockets;
-using System.Net;
 using System.Text.RegularExpressions;
+using Microsoft.Extensions.Configuration;
+using Serilog;
 
 // use like this:
 // using static dbjcore;
@@ -108,7 +107,7 @@ internal sealed class DBJcore
         return false;
     }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool Writedbg(string? payload = null)
     {
         if (payload is not null)
@@ -246,6 +245,7 @@ internal sealed class Log
 
     ~Log()
     {
+        // this is very questionable
         Serilog.Log.CloseAndFlush();
     }
 

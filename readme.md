@@ -19,6 +19,8 @@ Allow us to repeat official advice:
 
  There are people who do not mix vscode and vstudio and use one or the other. We find both of them lacking some features.
 
+ Generaly you are encouraged to browse through the code. Decumentation is coming along. Slowly.
+
 ## Just utilities
 
 Use like this:
@@ -50,6 +52,24 @@ Which will add these 3 lines in the csproj file:
     <PackageReference Include="serilog.sinks.file" Version="5.0.0" />
   </ItemGroup>
 ```
+Calling through 4 static methods:
+```c#
+Log.info( "message" );
+Log.debug( "message" );
+Log.error( "message" );
+Log.fatal( "message" );
+```
+Log file will be found here:
+```
+<project folder parent, full path>\<project folder>\bin\Debug\net7.0\logs\<exe name>YYYMMDD.log
+```
+
+- Find the `DO_NOT_CONSOLE` in the dbjcore source. 
+- Depending on it existence 
+  - `DBJCore.Writeln("message")` might output to console or to `Log.info( "message" )`.
+  - `DBJCore.Writerr("message")` might output to console or to `Log.error( "message" )`.
+  - `DBJCore.Writedbg("message")` might output to console or to `Log.debug( "message" )`.
+
 
 ## Configuration 
 .NET core json confiugration does not require any specialy named json config files.
