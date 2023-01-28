@@ -2,7 +2,7 @@
 
 dbj net core; reusable (and opinionated)
 
-> This is not assembly. This is code reuse. Gasp!
+ **This is not assembly. This is code reuse. Gasp!**
 
 ## Just utilities
 
