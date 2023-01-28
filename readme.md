@@ -2,6 +2,8 @@
 
 dbj net core; reusable (and opinionated)
 
+> This is not assembly. This is code reuse. Gasp!
+
 ## Just utilities
 
 Use like this:
