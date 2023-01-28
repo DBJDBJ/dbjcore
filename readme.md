@@ -4,6 +4,21 @@ dbj net core; reusable (and opinionated)
 
  **This is not assembly. This is code reuse. Gasp!**
 
+ Please use it as git submodule.
+
+
+## [Working with C# & VS Code](https://code.visualstudio.com/docs/languages/csharp)
+ 
+Allow us to repeat official advice:
+
+ > If you want the best possible experience for .NET / C# projects and development on Windows in general, we recommend you use Visual Studio Community.
+
+ Bit. `dotnet` cli command is your friend. We find it very easy to quickly setup the project using `dotnet`.
+
+ > VStudio for building and debugging. 'dotnet' cli for easy setup and vscode for git.
+
+ There are people who do not mix vscode and vstudio and use one or the other. We find both of them lacking some features.
+
 ## Just utilities
 
 Use like this:

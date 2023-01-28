@@ -21,10 +21,11 @@ using System.Text.RegularExpressions;
 // without a class name and dot in front, for example:
 // Writeln( Whoami() );
 
-namespace dbjcore;
+// kepp it in the global names space
+// namespace dbjcore;
 
 #region common utilities
-internal sealed class dbjcore
+internal sealed class DBJcore
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static string my_domain(bool up_ = false)
@@ -83,7 +84,7 @@ internal sealed class dbjcore
         if (payload is not null)
         {
 #if DO_NOT_CONSOLE
-            log.info(payload);
+            Log.info(payload);
 #else
         Console.WriteLine(payload);
 #endif
@@ -98,7 +99,7 @@ internal sealed class dbjcore
         if (payload is not null)
         {
 #if DO_NOT_CONSOLE
-            log.error(payload);
+            Log.error(payload);
 #else
         Console.WriteLine(payload);
 #endif
@@ -113,7 +114,7 @@ internal sealed class dbjcore
         if (payload is not null)
         {
 #if DO_NOT_CONSOLE
-            log.debug(payload);
+            Log.debug(payload);
 #else
         Console.WriteLine(payload);
 #endif
@@ -175,7 +176,7 @@ internal sealed class dbjcore
                     catch (Exception)
                     {
 #if DEBUG
-                        log.error($"No local IP found from the socket");
+                        Log.error($"No local IP found from the socket");
 #endif
                         return "127.0.01";
                     }
@@ -199,7 +200,7 @@ $ dotnet add package Serilog
 $ dotnet add package Serilog.Sinks.Console
 $ dotnet add package Serilog.Sinks.File
 */
-internal sealed class log
+internal sealed class Log
 {
     public readonly static string text_line = "-------------------------------------------------------------------------------";
     public readonly static string app_friendly_name = AppDomain.CurrentDomain.FriendlyName;
@@ -216,46 +217,46 @@ internal sealed class log
     // ROADMAP: it will be externaly configurable
     public readonly static string log_file_path_template_ = "{0}logs\\{1}.log";
 
-    public log()
+    public Log()
     {
         string log_file_path_ = string.Format(log_file_path_template_, AppContext.BaseDirectory, app_name);
 
-        Log.Logger = new LoggerConfiguration()
+        Serilog.Log.Logger = new LoggerConfiguration()
            .MinimumLevel.Debug()
            .WriteTo.File(log_file_path_, rollingInterval: RollingInterval.Day)
            .CreateLogger();
 
-        Log.Information(text_line);
-        Log.Information($"[{System.DateTime.Now.ToLocalTime().ToString()}] Starting {app_name}");
-        Log.Information($"Launched from {Environment.CurrentDirectory}");
-        Log.Information($"Physical location {AppDomain.CurrentDomain.BaseDirectory}");
+        Serilog.Log.Information(text_line);
+        Serilog.Log.Information($"[{System.DateTime.Now.ToLocalTime().ToString()}] Starting {app_name}");
+        Serilog.Log.Information($"Launched from {Environment.CurrentDirectory}");
+        Serilog.Log.Information($"Physical location {AppDomain.CurrentDomain.BaseDirectory}");
 #if DEBUG
-        Log.Debug($"AppContext.BaseDir {AppContext.BaseDirectory}");
-        Log.Debug("This app is built in a DEBUG mode");
+        Serilog.Log.Debug($"AppContext.BaseDir {AppContext.BaseDirectory}");
+        Serilog.Log.Debug("This app is built in a DEBUG mode");
 #endif
-        Log.Information(text_line);
+        Serilog.Log.Information(text_line);
         ProcessModule? pm_ = Process.GetCurrentProcess().MainModule;
         if (pm_ != null)
         {
-            Log.Information($"Runtime Call {Path.GetDirectoryName(pm_.FileName)}");
+            Serilog.Log.Information($"Runtime Call {Path.GetDirectoryName(pm_.FileName)}");
         }
-        Log.Information($"Log file location:{log_file_path_}");
-        Log.Information(text_line);
+        Serilog.Log.Information($"Log file location:{log_file_path_}");
+        Serilog.Log.Information(text_line);
     }
 
-    ~log()
+    ~Log()
     {
-        Log.CloseAndFlush();
+        Serilog.Log.CloseAndFlush();
     }
 
-    internal void debug_(string msg_) { Log.Debug(msg_); }
-    internal void info_(string msg_) { Log.Information(msg_); }
-    internal void error_(string msg_) { Log.Error(msg_); }
-    internal void fatal_(string msg_) { Log.Fatal(msg_); }
+    internal void debug_(string msg_) { Serilog.Log.Debug(msg_); }
+    internal void info_(string msg_) { Serilog.Log.Information(msg_); }
+    internal void error_(string msg_) { Serilog.Log.Error(msg_); }
+    internal void fatal_(string msg_) { Serilog.Log.Fatal(msg_); }
 
     // this is where log instance is made on demand once and not before called the first time
-    static Lazy<log> lazy_log = new Lazy<log>(() => new log());
-    static public log logger { get { return lazy_log.Value; } }
+    static Lazy<Log> lazy_log = new Lazy<Log>(() => new Log());
+    static public Log logger { get { return lazy_log.Value; } }
 
     // calling one of these will lazy load the loger and then use it
     // repeated calls will reuse the same instance
@@ -296,16 +297,18 @@ followed with section that adds the dot net components to use from the code
 <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="7.0.0" />
 </ItemGroup>
 */
-internal sealed class cfg
+internal sealed class Cfg
 {
     IConfiguration config;
     string config_file_name;
     /*
     config file name is completely 100% arbitrary
     it is hidden as def. val constructor parameter
-    that is not a good thing
+
+    I know that is not a good thing, but I am lazy , and besides that
+    How to configure the congiguration? Externaly? Probably using the cli arguments?
     */
-    public cfg(string json_config_file = "appsettings.json")
+    public Cfg(string json_config_file = "appsettings.json")
     {
         config_file_name = json_config_file;
         // Build a config object, using env vars and JSON providers.
@@ -322,16 +325,16 @@ internal sealed class cfg
         {
             var section_ = this.config.GetRequiredSection(path_);
 #if DEBUG
-            log.info($"cfg {utl.Whoami()}() for path: '{path_}'  -- key: '{section_.Key}', val: '{section_.Value}'");
+            Log.info($"cfg {DBJcore.Whoami()}() for path: '{path_}'  -- key: '{section_.Key}', val: '{section_.Value}'");
 #endif
             return section_.Value!;
         }
         catch (Exception x_)
         {
 #if DEBUG
-            log.error($"No element in the cfg json found for the path: '{path_}'");
+            Log.error($"No element in the cfg json found for the path: '{path_}'");
 #endif
-            log.error(x_.ToString());
+            Log.error(x_.ToString());
         }
         return string.Empty;
     }
@@ -345,32 +348,32 @@ internal sealed class cfg
         {
             var section_ = this.config.GetRequiredSection(path_);
 #if DEBUG
-            log.info($"cfg {utl.Whoami()}() -- path: '{path_}'  key:'{section_.Key}', val: '{section_.Value}'");
+            Log.info($"cfg {DBJcore.Whoami()}() -- path: '{path_}'  key:'{section_.Key}', val: '{section_.Value}'");
 #endif
             return section_.Get<T>();
         }
         catch (Exception x_)
         {
 #if DEBUG
-            log.error($"No element found for the path: '{path_}'");
+            Log.error($"No element found for the path: '{path_}'");
 #endif
-            log.error(x_.ToString());
+            Log.error(x_.ToString());
         }
 #if DEBUG
-        log.error($"Returning the user defined default value");
+        Log.error($"Returning the user defined default value");
 #endif
         return default_; // not: default(T)!;
     }
 
     // this is where cfg is made on demand once 
     // and not before it is called for the first time
-    static Lazy<cfg> lazy_cfg = new Lazy<cfg>(() => new cfg());
+    static Lazy<Cfg> lazy_cfg = new Lazy<Cfg>(() => new Cfg());
 
-    static public cfg instance { get { return lazy_cfg.Value; } }
+    static public Cfg instance { get { return lazy_cfg.Value; } }
     //
     // calling will lazy load the Configurator and then use it
     //
-    // var ip1 = cfg.get<string>("ip1", "192.168.0.0");
+    // var ip1 = Cfg.get<string>("ip1", "192.168.0.0");
     //
     public static T get<T>(string path_, T dflt_) { return instance.read<T>(path_, dflt_); }
 
@@ -378,6 +381,7 @@ internal sealed class cfg
 
 #endregion configuration
 
+// bellow is redundant text
 // here we use the path syntax which it seems is not that well documented?
 // usage example, hint: guess the JSON ;) 
 //     
