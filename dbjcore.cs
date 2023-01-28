@@ -324,7 +324,7 @@ internal sealed class Cfg
         try
         {
             var section_ = this.config.GetRequiredSection(path_);
-#if DEBUG
+#if DBJ_TRACE
             Log.info($"cfg {DBJcore.Whoami()}() for path: '{path_}'  -- key: '{section_.Key}', val: '{section_.Value}'");
 #endif
             return section_.Value!;
@@ -347,7 +347,7 @@ internal sealed class Cfg
         try
         {
             var section_ = this.config.GetRequiredSection(path_);
-#if DEBUG
+#if DBJ_TRACE
             Log.info($"cfg {DBJcore.Whoami()}() -- path: '{path_}'  key:'{section_.Key}', val: '{section_.Value}'");
 #endif
             return section_.Get<T>();
@@ -381,17 +381,6 @@ internal sealed class Cfg
 
 #endregion configuration
 
-// bellow is redundant text
-// here we use the path syntax which it seems is not that well documented?
-// usage example, hint: guess the JSON ;) 
-//     
-//     var k1 = Config.read<int>("Settings:KeyOne", 42 );
-//     var k2 = Config.read<bool>("Settings:KeyTwo", true );
-//     var k3m = Config.read<string>("Settings:KeyThree:Message", "default message");
-//     var k3v1 = Config.read<string>("Settings:KeyThree:SupportedVersions:v1", "0.0.1");
-//     var k3v3 = Config.read<string>("Settings:KeyThree:SupportedVersions:v3", "3.0.0");
-//     arrays
-//     var ip_range = Config.read<string[]>("Settings:IPAddressRange", new string[]{"10.13.4.7","4.4.4.1"});
-//     var first_ip = ip_range[0];
+
 
 
