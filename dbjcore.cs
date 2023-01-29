@@ -83,7 +83,7 @@ internal sealed class DBJcore
         if (payload is not null)
         {
 #if DO_NOT_CONSOLE
-            Log.info(payload);
+            DBJLog.info(payload);
 #else
         Console.WriteLine(payload);
 #endif
@@ -98,7 +98,7 @@ internal sealed class DBJcore
         if (payload is not null)
         {
 #if DO_NOT_CONSOLE
-            Log.error(payload);
+            DBJLog.error(payload);
 #else
         Console.WriteLine(payload);
 #endif
@@ -113,7 +113,7 @@ internal sealed class DBJcore
         if (payload is not null)
         {
 #if DO_NOT_CONSOLE
-            Log.debug(payload);
+            DBJLog.debug(payload);
 #else
         Console.WriteLine(payload);
 #endif
@@ -199,7 +199,7 @@ $ dotnet add package Serilog
 $ dotnet add package Serilog.Sinks.Console
 $ dotnet add package Serilog.Sinks.File
 */
-internal sealed class Log
+internal sealed class DBJLog
 {
     public readonly static string text_line = "-------------------------------------------------------------------------------";
     public readonly static string app_friendly_name = AppDomain.CurrentDomain.FriendlyName;
@@ -216,7 +216,7 @@ internal sealed class Log
     // ROADMAP: it will be externaly configurable
     public readonly static string log_file_path_template_ = "{0}logs\\{1}.log";
 
-    public Log()
+    public DBJLog()
     {
         string log_file_path_ = string.Format(log_file_path_template_, AppContext.BaseDirectory, app_name);
 
@@ -243,7 +243,7 @@ internal sealed class Log
         Serilog.Log.Information(text_line);
     }
 
-    ~Log()
+    ~DBJLog()
     {
         // this is very questionable
         Serilog.Log.CloseAndFlush();
@@ -255,8 +255,8 @@ internal sealed class Log
     internal void fatal_(string msg_) { Serilog.Log.Fatal(msg_); }
 
     // this is where log instance is made on demand once and not before called the first time
-    static Lazy<Log> lazy_log = new Lazy<Log>(() => new Log());
-    static public Log logger { get { return lazy_log.Value; } }
+    static Lazy<DBJLog> lazy_log = new Lazy<DBJLog>(() => new DBJLog());
+    static public DBJLog logger { get { return lazy_log.Value; } }
 
     // calling one of these will lazy load the loger and then use it
     // repeated calls will reuse the same instance
@@ -297,10 +297,10 @@ followed with section that adds the dot net components to use from the code
 <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="7.0.0" />
 </ItemGroup>
 */
-internal sealed class Cfg
+internal sealed class DBJCfg
 {
     IConfiguration config;
-    string config_file_name;
+    readonly string config_file_name = string.Empty ;
     /*
     config file name is completely 100% arbitrary
     it is hidden as def. val constructor parameter
@@ -308,7 +308,7 @@ internal sealed class Cfg
     I know that is not a good thing, but I am lazy , and besides that
     How to configure the congiguration? Externaly? Probably using the cli arguments?
     */
-    public Cfg(string json_config_file = "appsettings.json")
+    public DBJCfg(string json_config_file = "appsettings.json")
     {
         config_file_name = json_config_file;
         // Build a config object, using env vars and JSON providers.
@@ -334,7 +334,7 @@ internal sealed class Cfg
 #if DEBUG
             Log.error($"No element in the cfg json found for the path: '{path_}'");
 #endif
-            Log.error(x_.ToString());
+            DBJLog.error(x_.ToString());
         }
         return string.Empty;
     }
@@ -357,7 +357,7 @@ internal sealed class Cfg
 #if DEBUG
             Log.error($"No element found for the path: '{path_}'");
 #endif
-            Log.error(x_.ToString());
+            DBJLog.error(x_.ToString());
         }
 #if DEBUG
         Log.error($"Returning the user defined default value");
@@ -367,15 +367,17 @@ internal sealed class Cfg
 
     // this is where cfg is made on demand once 
     // and not before it is called for the first time
-    static Lazy<Cfg> lazy_cfg = new Lazy<Cfg>(() => new Cfg());
+    static Lazy<DBJCfg> lazy_cfg = new Lazy<DBJCfg>(() => new DBJCfg());
 
-    static public Cfg instance { get { return lazy_cfg.Value; } }
+    static public DBJCfg instance { get { return lazy_cfg.Value; } }
     //
     // calling will lazy load the Configurator and then use it
     //
     // var ip1 = Cfg.get<string>("ip1", "192.168.0.0");
     //
     public static T get<T>(string path_, T dflt_) { return instance.read<T>(path_, dflt_); }
+
+    public static string FileName { get { return instance.config_file_name; } }
 
 } // Config standardorum superiorum
 
