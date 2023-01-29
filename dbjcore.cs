@@ -26,6 +26,7 @@ using Serilog;
 #region common utilities
 internal sealed class DBJcore
 {
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static string my_domain(bool up_ = false)
     {
@@ -175,7 +176,7 @@ internal sealed class DBJcore
                     catch (Exception)
                     {
 #if DEBUG
-                        Log.error($"No local IP found from the socket");
+                        DBJLog.error($"No local IP found from the socket");
 #endif
                         return "127.0.01";
                     }
@@ -300,7 +301,7 @@ followed with section that adds the dot net components to use from the code
 internal sealed class DBJCfg
 {
     IConfiguration config;
-    readonly string config_file_name = string.Empty ;
+    readonly string config_file_name = string.Empty;
     /*
     config file name is completely 100% arbitrary
     it is hidden as def. val constructor parameter
@@ -332,7 +333,7 @@ internal sealed class DBJCfg
         catch (Exception x_)
         {
 #if DEBUG
-            Log.error($"No element in the cfg json found for the path: '{path_}'");
+            DBJLog.error($"No element in the cfg json found for the path: '{path_}'");
 #endif
             DBJLog.error(x_.ToString());
         }
@@ -355,13 +356,10 @@ internal sealed class DBJCfg
         catch (Exception x_)
         {
 #if DEBUG
-            Log.error($"No element found for the path: '{path_}'");
+            DBJLog.error($"No element found for the path: '{path_}'");
 #endif
             DBJLog.error(x_.ToString());
         }
-#if DEBUG
-        Log.error($"Returning the user defined default value");
-#endif
         return default_; // not: default(T)!;
     }
 

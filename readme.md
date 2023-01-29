@@ -1,25 +1,25 @@
 # DBJ CORE
 
-dbj net core; reusable (and opinionated)
+DI aka "Dependany Injection" is basicaly waste of time. Thus we have developed this little "dbj net core". Reusable (and opinionated)
 
  **This is not assembly. This is code reuse. Gasp!**
 
  Please use it as git submodule.
 
 
-## [Working with C# & VS Code](https://code.visualstudio.com/docs/languages/csharp)
+### [Working with C# & VS Code?](https://code.visualstudio.com/docs/languages/csharp)
  
-Allow us to repeat official advice:
+Allow us to repeat the official advice:
 
- > If you want the best possible experience for .NET / C# projects and development on Windows in general, we recommend you use Visual Studio Community.
+ ***If you want the best possible experience for .NET / C# projects and development on Windows in general, we recommend you use Visual Studio Community.***
 
- Bit. `dotnet` cli command is your friend. We find it very easy to quickly setup the project using `dotnet`.
+ But. `dotnet` cli command is your friend. We find it very easy to quickly setup the project using `dotnet`. Our advise is:
 
- > VStudio for building and debugging. 'dotnet' cli for easy setup and vscode for git.
+ > VStudio for building and debugging. 'dotnet' cli for easy setup and VSCode for git.
 
- There are people who do not mix vscode and vstudio and use one or the other. We find both of them lacking some features.
+ There are people who do not mix vscode and vstudio and use one or the other. We find both of them lacking some features. Found in the other one.
 
- Generaly you are encouraged to browse through the code. Decumentation is coming along. Slowly.
+ Generally you are encouraged to browse through the code. Decumentation is coming along. Slowly.
 
 ## Just utilities
 
