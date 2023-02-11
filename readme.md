@@ -57,17 +57,7 @@ If you will allow us to repeat the official advice?
 
 ## Just utilities
 
-Use like this:
-```c#
-using static dbjcore;
-```
-after which you can just use the method names 
-from the class utl in there, without a class name and dot in front, for example:
-```c#
-Writeln( Whoami() );
-```
-Namespace? Well yes, the code is yours (copyright is mine) so either keep it in global namespace or some of yours namespaces.
-By default is is `namespace dbjcore;`. We (all) think you can deal with that on your own.
+Look into the `DBJcore`. Please.
 
 ## Logging
 ### Requirements

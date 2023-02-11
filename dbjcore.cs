@@ -1,8 +1,11 @@
+#nullable enable
 #define DO_NOT_CONSOLE
 // above redirects Writeln to log.info and Writerr to log.error
 // using System;
 // using System.IO;
+using System;
 using System.Diagnostics;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
@@ -13,7 +16,8 @@ using System.Text.RegularExpressions;
 using Microsoft.Extensions.Configuration;
 using Serilog;
 
-namespace dbj ;
+//namespace dbj ;
+
 // use like this:
 // using static dbjcore;
 // after which you can just use the method names 
@@ -260,13 +264,41 @@ internal sealed class DBJLog
     static Lazy<DBJLog> lazy_log = new Lazy<DBJLog>(() => new DBJLog());
     static public DBJLog logger { get { return lazy_log.Value; } }
 
+    private static void dispatch_( 
+        Action<string> log_, string format, params object[] args
+        )
+    {
+        if (args.Length < 1)
+            log_(format);
+        else
+        {
+            log_(string.Format(format, args));
+        }
+    }
+
+
     // calling one of these will lazy load the loger and then use it
     // repeated calls will reuse the same instance
     // log.info("where is this going then?");
-    public static void debug(string msg_) { logger.debug_(msg_); }
-    public static void info(string msg_) { logger.info_(msg_); }
-    public static void error(string msg_) { logger.error_(msg_); }
-    public static void fatal(string msg_) { logger.fatal_(msg_); }
+    public static void debug(string format, params object[] args) {
+        dispatch_((msg_) => logger.debug_(msg_), format, args);
+    }
+    public static void info(string format, params object[] args)
+    {
+        dispatch_((msg_) => logger.info_(msg_), format, args);
+    }
+    public static void error(string format, params object[] args)
+    {
+        dispatch_((msg_) => logger.error_(msg_), format, args);
+    }
+    public static void fatal(string format, params object[] args)
+    {
+        dispatch_((msg_) => logger.fatal_(msg_), format, args);
+    }
+
+    //public static void info(string msg_) { logger.info_(msg_); }
+    //public static void error(string msg_) { logger.error_(msg_); }
+    //public static void fatal(string msg_) { logger.fatal_(msg_); }
 
 }
 

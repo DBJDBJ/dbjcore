@@ -9,5 +9,6 @@
     <Import_RootNamespace>dbjcore</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)dbjcore.cs" />
   </ItemGroup>
 </Project>
