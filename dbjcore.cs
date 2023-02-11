@@ -13,6 +13,7 @@ using System.Text.RegularExpressions;
 using Microsoft.Extensions.Configuration;
 using Serilog;
 
+namespace dbj ;
 // use like this:
 // using static dbjcore;
 // after which you can just use the method names 

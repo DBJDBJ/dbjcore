@@ -1,19 +1,53 @@
-# DBJ CORE
+<h1>DBJ CORE</h1>
 
-DI aka "Dependany Injection" is basicaly waste of time. Thus we have developed this little "dbj net core". Reusable (and opinionated)
+- [Why?](#why)
+- [GitHub Organization Folder](#github-organization-folder)
+  - [Working with C# and liking VS Code?](#working-with-c-and-liking-vs-code)
+- [Just utilities](#just-utilities)
+- [Logging](#logging)
+  - [Requirements](#requirements)
+  - [Usage](#usage)
+- [Dbj Core Configuration](#dbj-core-configuration)
+  - [Requirements](#requirements-1)
+
+
+## Why?
+DI aka "Dependany Injection" is basicaly waste of time. Complex OOP. Thus we have developed this little "dbj net core". Reusable (and opinionated)
 
  **This is not assembly. This is code reuse. Gasp!**
 
  Please use it as git submodule.
 
+## GitHub Organization Folder
 
-### [Working with C# & VS Code?](https://code.visualstudio.com/docs/languages/csharp)
+We simply do not use Github submodules. We group projects in GIT HUB organizations. And this is how we clone them, and keeo them together, and reference them from each other using Visual Studio.
+
+That is important since we use Visual Studio solutions where we include other projects, but from the same organization folder. Under which the organization project are cloned.
+
+Example. The '[valstat](https://github.com/valstat)` organization folder happens to be: 
+```
+D:\DEVL\GITHUB\VALSTAT
+```
+At the moment we have three repositories in that organization cloned in there: 
+```
+D:\DEVL\GITHUB\VALSTAT
+├───dbjcore
+├───valstat_csharp
+└───valstat_dll_specimen
+```
+Thus any solution in there might reference any project under the same organization folder.
+
+`valstat_csharp\valstatcsharp.sln` uses `valstat_dll_specimen\valstat_dll.vcxproj` and `dbjcore\dbjcore.shproj`.
+
+to build `valstatcsharp.sln` you need to clone those two other repositories as well. Under the same organization folder. No submodules required.
+
+### [Working with C# and liking VS Code?](https://code.visualstudio.com/docs/languages/csharp)
  
-Allow us to repeat the official advice:
+If you will allow us to repeat the official advice?
 
  ***If you want the best possible experience for .NET / C# projects and development on Windows in general, we recommend you use Visual Studio Community.***
 
- But. `dotnet` cli command is your friend. We find it very easy to quickly setup the project using `dotnet`. Our advise is:
+ But, not all is lost. `dotnet` cli command is your friend. We find it very easy to quickly setup the project using `dotnet`. Our advise is:
 
  > VStudio for building and debugging. 'dotnet' cli for easy setup and VSCode for git.
 
@@ -36,7 +70,7 @@ Namespace? Well yes, the code is yours (copyright is mine) so either keep it in 
 By default is is `namespace dbjcore;`. We (all) think you can deal with that on your own.
 
 ## Logging
-
+### Requirements
 Yes serilog is better. Loggin utils in here do require executing these 3 cli commands, in the host project:
 
 ```
@@ -52,6 +86,7 @@ Which will add these 3 lines in the csproj file:
     <PackageReference Include="serilog.sinks.file" Version="5.0.0" />
   </ItemGroup>
 ```
+### Usage
 Calling through 4 static methods:
 ```c#
 Log.info( "message" );
@@ -63,6 +98,9 @@ Log file will be found here:
 ```
 <project folder parent, full path>\<project folder>\bin\Debug\net7.0\logs\<exe name>YYYMMDD.log
 ```
+Thay might enrage you. Feel free to go into the code and change it. 
+
+Further usage
 
 - Find the `DO_NOT_CONSOLE` in the dbjcore source. 
 - Depending on it existence 
@@ -71,9 +109,13 @@ Log file will be found here:
   - `DBJCore.Writedbg("message")` might output to console or to `Log.debug( "message" )`.
 
 
-## Configuration 
+## Dbj Core Configuration 
 .NET core json confiugration does not require any specialy named json config files.
-We just happen to call it `appsettings.json`. Thus we have to add these lines to the csproj file:
+We just happen to call it `appsettings.json`. 
+
+### Requirements
+
+Thus we have to add these lines to the csproj file:
 
 ```xml
 <!-- Required for the configurator to work -->
