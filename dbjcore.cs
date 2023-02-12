@@ -70,6 +70,16 @@ internal sealed class DBJcore
         return caller_name;
     }
 
+    // returned is a record type
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static (string File, int Line) FileLineInfo(
+        [CallerFilePath] string filePath = "",
+        [CallerLineNumber] int lineNumber = 0)
+    {
+        // make and return a record
+        return new (filePath, lineNumber );
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool Assert(bool condition_)
     {
