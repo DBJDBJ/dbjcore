@@ -41,6 +41,9 @@ internal sealed class DBJcore
         return lazy_.Value;
     }
 
+    /// <summary>
+    /// Random word made from GUID
+    /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static string guid_word(bool up_ = false)
     {
@@ -60,6 +63,9 @@ internal sealed class DBJcore
         return DateTime.Now.ToLocalTime().ToString();
     }
 
+    /// <summary>
+    /// Return the name of the caller
+    /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static string Whoami([CallerMemberName] string? caller_name = null)
     {
@@ -70,7 +76,10 @@ internal sealed class DBJcore
         return caller_name;
     }
 
-    // returned is a record type
+    /// <summary>
+    /// Return the file name and source line number to the caller
+    /// returned is a record type
+    /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static (string File, int Line) FileLineInfo(
         [CallerFilePath] string filePath = "",
@@ -87,12 +96,19 @@ internal sealed class DBJcore
         return condition_;
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static string Name()
+    /// <summary>
+    /// Return the name of this assebly or executable
+    /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static string ThisName()
     {
         return Assembly.GetExecutingAssembly().GetName().FullName;
     }
 
+    /// <summary>
+    /// Write to the Console or log depending on the compile time
+    /// existence of DO_NOT_CONSOLE
+    /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool Writeln(string? payload = null)
     {
@@ -108,6 +124,9 @@ internal sealed class DBJcore
         return false;
     }
 
+    /// <summary>
+    /// same as above but for errors
+    /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool Writerr(string? payload = null)
     {
@@ -123,6 +142,9 @@ internal sealed class DBJcore
         return false;
     }
 
+    /// <summary>
+    /// same as above but for debugging
+    /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool Writedbg(string? payload = null)
     {
@@ -170,10 +192,10 @@ internal sealed class DBJcore
         return Encoding.UTF8.GetString(bytes);
     }
 
-    /*
-    this is where log instance is made on demand once 
-    and not before called the first call
-    */
+    /// <summary>
+    /// retun the local IP as a string
+    /// if "127.0.01" is returned obviously there is no network
+    /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static string local_ip()
     {
