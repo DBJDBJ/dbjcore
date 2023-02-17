@@ -105,61 +105,6 @@ internal sealed class DBJcore
         return Assembly.GetExecutingAssembly().GetName().FullName;
     }
 
-    /// <summary>
-    /// Write to the Console or log depending on the compile time
-    /// existence of DO_NOT_CONSOLE
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool Writeln(string? payload = null)
-    {
-        if (payload is not null)
-        {
-#if DO_NOT_CONSOLE
-            DBJLog.info(payload);
-#else
-        Console.WriteLine(payload);
-#endif
-            return true;
-        }
-        return false;
-    }
-
-    /// <summary>
-    /// same as above but for errors
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool Writerr(string? payload = null)
-    {
-        if (payload is not null)
-        {
-#if DO_NOT_CONSOLE
-            DBJLog.error(payload);
-#else
-        Console.WriteLine(payload);
-#endif
-            return true;
-        }
-        return false;
-    }
-
-    /// <summary>
-    /// same as above but for debugging
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool Writedbg(string? payload = null)
-    {
-        if (payload is not null)
-        {
-#if DO_NOT_CONSOLE
-            DBJLog.debug(payload);
-#else
-        Console.WriteLine(payload);
-#endif
-            return true;
-        }
-        return false;
-    }
-
     /*
      * string test = "Testing 1-2-3";
 
@@ -194,7 +139,7 @@ internal sealed class DBJcore
 
     /// <summary>
     /// retun the local IP as a string
-    /// if "127.0.01" is returned obviously there is no network
+    /// if "127.0.0.1" is returned obviously there is no network
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static string local_ip()
@@ -215,7 +160,7 @@ internal sealed class DBJcore
 #if DEBUG
                         DBJLog.error($"No local IP found from the socket");
 #endif
-                        return "127.0.01";
+                        return "127.0.0.1";
                     }
                 }
             }
@@ -250,19 +195,40 @@ internal sealed class DBJLog
         }
     }
 
+#if LOG_TO_FILE
     // this path is obviously deeply wrong :P
     // ROADMAP: it will be externaly configurable
     public readonly static string log_file_path_template_ = "{0}logs\\{1}.log";
-
+#endif
     public DBJLog()
     {
+#if LOG_TO_FILE
         string log_file_path_ = string.Format(log_file_path_template_, AppContext.BaseDirectory, app_name);
-
+#endif
         Serilog.Log.Logger = new LoggerConfiguration()
            .MinimumLevel.Debug()
+#if LOG_TO_FILE
            .WriteTo.File(log_file_path_, rollingInterval: RollingInterval.Day)
+#else
+           .WriteTo.Console()
+#endif
            .CreateLogger();
 
+#if LOG_TO_FILE
+        DBJLog.log_file_header(log_file_path_);
+#endif
+
+    }
+
+    ~DBJLog()
+    {
+        // this is very questionable
+        Serilog.Log.CloseAndFlush();
+    }
+
+    #if LOG_TO_FILE
+    static void log_file_header(string log_file_path_)
+    {
         Serilog.Log.Information(text_line);
         Serilog.Log.Information($"[{System.DateTime.Now.ToLocalTime().ToString()}] Starting {app_name}");
         Serilog.Log.Information($"Launched from {Environment.CurrentDirectory}");
@@ -280,22 +246,24 @@ internal sealed class DBJLog
         Serilog.Log.Information($"Log file location:{log_file_path_}");
         Serilog.Log.Information(text_line);
     }
+#endif
 
-    ~DBJLog()
-    {
-        // this is very questionable
-        Serilog.Log.CloseAndFlush();
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal void debug_(string msg_) { Serilog.Log.Debug(msg_); 
     }
 
-    internal void debug_(string msg_) { Serilog.Log.Debug(msg_); }
-    internal void info_(string msg_) { Serilog.Log.Information(msg_); }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal void info_(string msg_) { Serilog.Log.Information(msg_); }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] 
     internal void error_(string msg_) { Serilog.Log.Error(msg_); }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] 
     internal void fatal_(string msg_) { Serilog.Log.Fatal(msg_); }
 
     // this is where log instance is made on demand once and not before called the first time
     static Lazy<DBJLog> lazy_log = new Lazy<DBJLog>(() => new DBJLog());
     static public DBJLog logger { get { return lazy_log.Value; } }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void dispatch_( 
         Action<string> log_, string format, params object[] args
         )
@@ -312,26 +280,29 @@ internal sealed class DBJLog
     // calling one of these will lazy load the loger and then use it
     // repeated calls will reuse the same instance
     // log.info("where is this going then?");
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void debug(string format, params object[] args) {
-        dispatch_((msg_) => logger.debug_(msg_), format, args);
+        if (Serilog.Log.IsEnabled(Serilog.Events.LogEventLevel.Debug))
+            dispatch_((msg_) => logger.debug_(msg_), format, args);
     }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void info(string format, params object[] args)
     {
-        dispatch_((msg_) => logger.info_(msg_), format, args);
+        if (Serilog.Log.IsEnabled(Serilog.Events.LogEventLevel.Information))
+            dispatch_((msg_) => logger.info_(msg_), format, args);
     }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void error(string format, params object[] args)
     {
-        dispatch_((msg_) => logger.error_(msg_), format, args);
+        if (Serilog.Log.IsEnabled(Serilog.Events.LogEventLevel.Error))
+            dispatch_((msg_) => logger.error_(msg_), format, args);
     }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void fatal(string format, params object[] args)
     {
-        dispatch_((msg_) => logger.fatal_(msg_), format, args);
+        if (Serilog.Log.IsEnabled(Serilog.Events.LogEventLevel.Fatal))
+            dispatch_((msg_) => logger.fatal_(msg_), format, args);
     }
-
-    //public static void info(string msg_) { logger.info_(msg_); }
-    //public static void error(string msg_) { logger.error_(msg_); }
-    //public static void fatal(string msg_) { logger.fatal_(msg_); }
-
 }
 
 #endregion logging
