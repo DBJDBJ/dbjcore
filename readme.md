@@ -137,16 +137,13 @@ Above says: Find me a key `max_block_count`, cast its value to `short` and retur
       DBJcore.Writerr("key: 'specimen_blocks' not found in: " + DBJCfg.FileName + ", going to use default value: " + 1);
   }
 ```
-`appsettings.json` required in this case is:
+`DBJCfg.FileName` is the name of the json cfg file. `appsettings.json` content required in this case is:
 ```json
 {
-  // Atention: this app will not work without this config json file
-  // specimen size is specimen_blocks * 1024
-  // max is 64 max_block_count
   "max_block_count": 64,
   "specimen_blocks": 64,
 
   "string_to_compress": "Hello World!"
 }
 ```
-Yes, in the .NET universe json files can have comments.
+Yes, in the .NET universe json files can have comments too.
