@@ -100,8 +100,7 @@ Further usage
 
 
 ## Dbj Core Configuration 
-.NET core json confiugration does not require any specialy named json config files.
-We just happen to call it `appsettings.json`. 
+Contary to popular belief (among .NET Lemmings) .NET core json configuration does not require any specialy named json config files. Any name will do, as long as you make and use your own configuration routies. We just happen to call ours: `appsettings.json`. 
 
 ### Requirements
 
@@ -116,7 +115,7 @@ We have to add these lines to the csproj file:
 </ItemGroup>
 ```
 
-Amd we need to add these, because we are using .net core for configuration too:
+Amd we need to add these to the `csproj`, because we are using .net core for configuration too:
 
 ```xml
 <ItemGroup>
@@ -137,7 +136,7 @@ Above says: Find me a key `max_block_count`, cast its value to `short` and retur
       DBJcore.Writerr("key: 'specimen_blocks' not found in: " + DBJCfg.FileName + ", going to use default value: " + 1);
   }
 ```
-appsettings.json in this case is:
+`appsettings.json` required in this case is:
 ```json
 {
   // Atention: this app will not work without this config json file
