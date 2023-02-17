@@ -12,17 +12,15 @@
 
 
 ## Why?
-DI aka "Dependany Injection" is basicaly waste of time. Complex OOP. Thus we have developed this little "dbj net core". Reusable (and opinionated)
+DI aka "Dependancy Injection" is basicaly waste of time. Complex OOP with no obvious cause of existence. Thus we have developed this little "dbj net core", from where we use configuration, loggin and little utilities we have collected thorough years. All opinionated.
 
  **This is not assembly. This is code reuse. Gasp!**
 
- Please use it as git submodule.
-
 ## GitHub Organization Folder
 
-We simply do not use Github submodules. We group projects in GIT HUB organizations. And this is how we clone them, and keeo them together, and reference them from each other using Visual Studio.
+We simply do not use Github submodules. We group projects (repositories) in GIT HUB organizations. And this is how we clone them, and keep them together, and reference them from each other, under a commom "orgnization folder" root.
 
-That is important since we use Visual Studio solutions where we include other projects, but from the same organization folder. Under which the organization project are cloned.
+That is important since we use Visual Studio solutions, elsewhere on development machines, from where we include other projects, but from the same organization folder. Under which the organization project are cloned.
 
 Example. The '[valstat](https://github.com/valstat)` organization folder happens to be: 
 ```
@@ -53,11 +51,16 @@ If you will allow us to repeat the official advice?
 
  There are people who do not mix vscode and vstudio and use one or the other. We find both of them lacking some features. Found in the other one.
 
- Generally you are encouraged to browse through the code. Decumentation is coming along. Slowly.
+ > Generally you are encouraged to browse through the code. Decumentation is coming along. Slowly.
 
 ## Just utilities
 
-Look into the `DBJcore`. Please.
+We use, wherever we can this optimization:
+```c#
+[MethodImpl(MethodImplOptions.AggressiveInlining)]
+```
+It is not a magic wand. Just a hint to a compiler.
+For more just look into the `DBJcore`.
 
 ## Logging
 ### Requirements
