@@ -124,6 +124,7 @@ Amd we need to add these to the `csproj`, because we are using .net core for con
 <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="7.0.0" />
 </ItemGroup>
 ```
+### Usage
 Usage is simple. There is basically one static method on the `DBJCfg` class. 
 ```c#
  var max_block_count = DBJCfg.get<short>("max_block_count", 0  );
