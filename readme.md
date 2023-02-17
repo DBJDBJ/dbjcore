@@ -105,7 +105,7 @@ We just happen to call it `appsettings.json`.
 
 ### Requirements
 
-Thus we have to add these lines to the csproj file:
+We have to add these lines to the csproj file:
 
 ```xml
 <!-- Required for the configurator to work -->
@@ -125,3 +125,28 @@ Amd we need to add these, because we are using .net core for configuration too:
 <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="7.0.0" />
 </ItemGroup>
 ```
+Usage is simple. There is basically one static method on the `DBJCfg` class. 
+```c#
+ var max_block_count = DBJCfg.get<short>("max_block_count", 0  );
+```
+Above says: Find me a key `max_block_count`, cast its value to `short` and return it. If anything goes wrong return the last parameter given. Thus we can do the following:
+```c#
+  if (( configured_specimen_blocks < 1) || (configured_specimen_blocks > max_block_count) )
+  {
+      configured_specimen_blocks = 1;
+      DBJcore.Writerr("key: 'specimen_blocks' not found in: " + DBJCfg.FileName + ", going to use default value: " + 1);
+  }
+```
+appsettings.json in this case is:
+```json
+{
+  // Atention: this app will not work without this config json file
+  // specimen size is specimen_blocks * 1024
+  // max is 64 max_block_count
+  "max_block_count": 64,
+  "specimen_blocks": 64,
+
+  "string_to_compress": "Hello World!"
+}
+```
+Yes, in the .NET universe json files can have comments.
