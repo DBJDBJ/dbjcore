@@ -2,23 +2,24 @@
 
 - [Why?](#why)
 - [GitHub Organization Folder aka Why not Git Submodules](#github-organization-folder-aka-why-not-git-submodules)
-  - [Working with C# and liking VS Code?](#working-with-c-and-liking-vs-code)
+    - [Working with C# and liking VS Code?](#working-with-c-and-liking-vs-code)
   - [The Actuall Usage](#the-actuall-usage)
-- [Just utilities](#just-utilities)
+    - [Just utilities](#just-utilities)
 - [Logging](#logging)
-  - [Requirements](#requirements)
-  - [Usage](#usage)
+    - [Requirements](#requirements)
+    - [Usage](#usage)
+    - [Further usage](#further-usage)
 - [Dbj Core Configuration](#dbj-core-configuration)
   - [Requirements](#requirements-1)
   - [Usage](#usage-1)
 
 
-## Why?
+# Why?
 DI aka "Dependancy Injection" is basicaly waste of time. Complex OOP with no obvious cause of existence. Thus we have developed this little "dbj net core", from where we use configuration, loggin and little utilities we have collected thorough years. All opinionated.
 
  **This is not assembly. This is code reuse. Gasp!**
 
-## GitHub Organization Folder aka Why not Git Submodules
+# GitHub Organization Folder aka Why not Git Submodules
 
 ### [Working with C# and liking VS Code?](https://code.visualstudio.com/docs/languages/csharp)
  
@@ -34,7 +35,7 @@ Don't. Use Visual Studio. Will you allow us to repeat the official advice?
 
  > Generally you are encouraged to browse through the code. Decumentation is coming along. Slowly.
 
- ### The Actuall Usage 
+ ## The Actuall Usage 
 
 We simply do not use Github submodules. We group projects (repositories) in GIT HUB *organizations folders*. And this is how we clone them, and keep them together, and reference them from each other, under a commom "orgnization folder" root.
 
@@ -59,7 +60,7 @@ to build `valstatcsharp.sln` you need to clone those two other repositories as w
 
 
 
-## Just utilities
+### Just utilities
 
 We use, wherever we can this optimization:
 ```c#
@@ -68,9 +69,9 @@ We use, wherever we can this optimization:
 It is not a magic wand. Just a hint to a compiler.
 For more just look into the `DBJcore`.
 
-## Logging
+# Logging
 ### Requirements
-Yes serilog is better. Loggin utils in here do require executing these 3 cli commands, in the host project:
+Yes [Serilog](https://github.com/serilog/serilog) is better; tens (hunderds) of milions are using [Serilog](https://serilog.net). Loggin utils in here do require executing these 3 cli commands, in the host project:
 
 ```
 $ dotnet add package Serilog
@@ -88,32 +89,36 @@ Which will add these 3 lines in the csproj file:
 ### Usage
 Calling through 4 static methods:
 ```c#
-Log.info( "message" );
-Log.debug( "message" );
-Log.error( "message" );
-Log.fatal( "message" );
+using static DBJLog;
+
+// usage is elswhere 
+info( "message" );
+debug( "message" );
+error( "message" );
+fatal( "message" );
 ```
-Log file will be found here:
+If used log file will be found here:
 ```
 <project folder parent, full path>\<project folder>\bin\Debug\net7.0\logs\<exe name>YYYMMDD.log
 ```
-Thay might enrage you. Feel free to go into the code and change it. 
+That might enrage you. Feel free to go into the code and change it. 
 
-Further usage
+### Further usage
 
-- Find the `DO_NOT_CONSOLE` in the dbjcore source. 
-- Depending on it existence 
-  - `DBJCore.Writeln("message")` might output to console or to `Log.info( "message" )`.
-  - `DBJCore.Writerr("message")` might output to console or to `Log.error( "message" )`.
-  - `DBJCore.Writedbg("message")` might output to console or to `Log.debug( "message" )`.
+On the top of the dbjcore source: 
 
+```c#
+// #define LOG_TO_FILE
+```
 
-## Dbj Core Configuration 
-Contary to popular belief (among .NET Lemmings) .NET core json configuration does not require any specialy named json config files. Any name will do, as long as you make and use your own configuration routies. We just happen to call ours: `appsettings.json`. 
+DBJLog by default otuputs to console as that is the way for container logging.
 
-### Requirements
+# Dbj Core Configuration 
+Contary to popular belief (prevailing among .NET Lemmings population) .NET core json configuration does not require any specialy named json config files. Any name will do, as long as you make and use your own configuration routines. We just happen to call ours: `appsettings.json`. 
 
-We have to add these lines to the csproj file:
+## Requirements
+
+You have to add these lines to the csproj file (that is the hosting project):
 
 ```xml
 <!-- Required for the configurator to work -->
@@ -123,8 +128,7 @@ We have to add these lines to the csproj file:
 </Content>
 </ItemGroup>
 ```
-
-Amd we need to add these to the `csproj`, because we are using .net core for configuration too:
+And it is obvious why. And we need to add these to the `csproj` file (of the host project), because we are using .net core for configuration too:
 
 ```xml
 <ItemGroup>
@@ -133,21 +137,10 @@ Amd we need to add these to the `csproj`, because we are using .net core for con
 <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="7.0.0" />
 </ItemGroup>
 ```
-### Usage
-Usage is simple. There is basically one static method on the `DBJCfg` class. 
-```c#
- var max_block_count = DBJCfg.get<short>("max_block_count", 0  );
-```
-Above says: Find me a key `max_block_count`, cast its value to `short` and return it. If anything goes wrong return the last parameter given. Thus we can do the following:
-```c#
-  if (( configured_specimen_blocks < 1) || (configured_specimen_blocks > max_block_count) )
-  {
-      configured_specimen_blocks = 1;
-      DBJcore.Writerr("key: 'specimen_blocks' not found in: " + DBJCfg.FileName + ", going to use default value: " + 1);
-  }
-```
-`DBJCfg.FileName` is the name of the json cfg file. `appsettings.json` content required in this case is:
+## Usage
+`DBJCfg.FileName` is the name of the json cfg file (hint: `appsettings.json` ). Content required in this case is:
 ```json
+// appsettings.json
 {
   "max_block_count": 64,
   "specimen_blocks": 64,
@@ -155,4 +148,10 @@ Above says: Find me a key `max_block_count`, cast its value to `short` and retur
   "string_to_compress": "Hello World!"
 }
 ```
+Usage is simple. There is basically one static method on the `DBJCfg` class. 
+```c#
+ var max_block_count = DBJCfg.get<short>("max_block_count", 0  );
+```
+Above says: Find me a key `max_block_count`, cast its value to `short` and return it. If anything goes wrong return the last parameter given. Zero.
+
 Yes, in the .NET universe json files can have comments too.
