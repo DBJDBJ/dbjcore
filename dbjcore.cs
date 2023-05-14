@@ -1,11 +1,11 @@
 #nullable enable
-#define DO_NOT_CONSOLE
+// #define LOG_TO_FILE
 // above redirects Writeln to log.info and Writerr to log.error
 // using System;
 // using System.IO;
-using System;
-using System.Diagnostics;
-using System.IO;
+//using System;
+//using System.Diagnostics;
+//using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
@@ -25,7 +25,7 @@ using Serilog;
 // without a class name and dot in front, for example:
 // Writeln( Whoami() );
 
-// kepp it in the global names space
+// keep it in the global names space
 // namespace dbjcore;
 
 #region common utilities
@@ -182,7 +182,7 @@ $ dotnet add package Serilog
 $ dotnet add package Serilog.Sinks.Console
 $ dotnet add package Serilog.Sinks.File
 */
-internal sealed class DBJLog
+internal sealed class DBJLog : IDisposable 
 {
     public readonly static string text_line = "-------------------------------------------------------------------------------";
     public readonly static string app_friendly_name = AppDomain.CurrentDomain.FriendlyName;
@@ -195,6 +195,23 @@ internal sealed class DBJLog
         }
     }
 
+    // is thi a trick? hack? cludge?
+    // this method is deliberately not static
+    // so that instance must be made to use it
+    public Serilog.Events.LogEventLevel enabled_level()
+    {
+        if (Serilog.Log.IsEnabled(Serilog.Events.LogEventLevel.Verbose)) return Serilog.Events.LogEventLevel.Verbose;
+        if (Serilog.Log.IsEnabled(Serilog.Events.LogEventLevel.Debug)) return Serilog.Events.LogEventLevel.Debug;
+        if (Serilog.Log.IsEnabled(Serilog.Events.LogEventLevel.Information)) return Serilog.Events.LogEventLevel.Information;
+        if (Serilog.Log.IsEnabled(Serilog.Events.LogEventLevel.Warning)) return Serilog.Events.LogEventLevel.Warning;
+        if (Serilog.Log.IsEnabled(Serilog.Events.LogEventLevel.Error)) return Serilog.Events.LogEventLevel.Error;
+        if (Serilog.Log.IsEnabled(Serilog.Events.LogEventLevel.Fatal)) return Serilog.Events.LogEventLevel.Fatal;
+
+        throw new Exception( "method " + DBJcore.Whoami() + ": This should never happen");
+
+    }
+
+
 #if LOG_TO_FILE
     // this path is obviously deeply wrong :P
     // ROADMAP: it will be externaly configurable
@@ -202,31 +219,53 @@ internal sealed class DBJLog
 #endif
     public DBJLog()
     {
+        // https://github.com/serilog/serilog/wiki/Configuration-Basics#minimum-level
+        // default level is Information that is considered for a production system
+
+        // defulat is not file but console logging
+        // container logging is to console
+        // that goes to container logs and is collected by log agents dispatchers
 #if LOG_TO_FILE
         string log_file_path_ = string.Format(log_file_path_template_, AppContext.BaseDirectory, app_name);
-#endif
         Serilog.Log.Logger = new LoggerConfiguration()
-           .MinimumLevel.Debug()
-#if LOG_TO_FILE
            .WriteTo.File(log_file_path_, rollingInterval: RollingInterval.Day)
-#else
-           .WriteTo.Console()
+#if DEBUG
+           .MinimumLevel.Debug()
 #endif
            .CreateLogger();
+#else
+        Serilog.Log.Logger = new LoggerConfiguration()
+#if DEBUG
+    .MinimumLevel.Debug()
+#endif
+    .WriteTo.Console()
+    .CreateLogger();
+#endif
 
 #if LOG_TO_FILE
         DBJLog.log_file_header(log_file_path_);
 #endif
 
-    }
+#if DEBUG
+        Serilog.Events.LogEventLevel ? what_level = enabled_level();
+        what_level = null ;
 
-    ~DBJLog()
-    {
-        // this is very questionable
-        Serilog.Log.CloseAndFlush();
-    }
+        Serilog.Log.Fatal("FATAL is on the top level");
+        Serilog.Log.Error("ERROR is bellow FATAL");
+        Serilog.Log.Warning("WARNING is bellow ERROR");
+        Serilog.Log.Information("INFORMATION is bellow WARNING");
+        Serilog.Log.Debug("DEBUG is bellow INFORMATION");
+        Serilog.Log.Verbose("VERBOSE is on the bottom level");
 
-    #if LOG_TO_FILE
+        // if minimum level is DEBUG only Verbose will not be shown
+        // https://github.com/serilog/serilog/wiki/Configuration-Basics#minimum-level
+        // default level is Information that is considered for a production system
+
+#endif
+
+    } // Main()
+
+#if LOG_TO_FILE
     static void log_file_header(string log_file_path_)
     {
         Serilog.Log.Information(text_line);
@@ -261,6 +300,9 @@ internal sealed class DBJLog
 
     // this is where log instance is made on demand once and not before called the first time
     static Lazy<DBJLog> lazy_log = new Lazy<DBJLog>(() => new DBJLog());
+    private bool disposedValue;
+
+    // use this to create the DBJLog instance (through its contructor) at least once 
     static public DBJLog logger { get { return lazy_log.Value; } }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -276,32 +318,65 @@ internal sealed class DBJLog
         }
     }
 
-
     // calling one of these will lazy load the loger and then use it
     // repeated calls will reuse the same instance
     // log.info("where is this going then?");
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void debug(string format, params object[] args) {
-        if (Serilog.Log.IsEnabled(Serilog.Events.LogEventLevel.Debug))
+        if (logger.enabled_level() == Serilog.Events.LogEventLevel.Debug )
             dispatch_((msg_) => logger.debug_(msg_), format, args);
     }
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void info(string format, params object[] args)
     {
-        if (Serilog.Log.IsEnabled(Serilog.Events.LogEventLevel.Information))
+        if (logger.enabled_level() == (Serilog.Events.LogEventLevel.Information))
             dispatch_((msg_) => logger.info_(msg_), format, args);
     }
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void error(string format, params object[] args)
     {
-        if (Serilog.Log.IsEnabled(Serilog.Events.LogEventLevel.Error))
+        if (logger.enabled_level() == (Serilog.Events.LogEventLevel.Error))
             dispatch_((msg_) => logger.error_(msg_), format, args);
     }
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void fatal(string format, params object[] args)
     {
-        if (Serilog.Log.IsEnabled(Serilog.Events.LogEventLevel.Fatal))
+        if (logger.enabled_level() == (Serilog.Events.LogEventLevel.Fatal))
             dispatch_((msg_) => logger.fatal_(msg_), format, args);
+    }
+    //-----------------------------------------------------------------
+    ~DBJLog()
+    {
+        Dispose(false);
+    }
+
+    private void Dispose(bool disposing)
+    {
+        if (!disposedValue)
+        {
+            if (disposing)
+            {
+                Serilog.Log.CloseAndFlush();
+            }
+
+            // TODO: free unmanaged resources (unmanaged objects) and override finalizer
+            // TODO: set large fields to null
+            disposedValue = true;
+        }
+    }
+
+    // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
+    // ~DBJLog()
+    // {
+    //     // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+    //     Dispose(disposing: false);
+    // }
+
+    void IDisposable.Dispose()
+    {
+        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+        Dispose(disposing: true);
+        GC.SuppressFinalize(this);
     }
 }
 
@@ -387,7 +462,12 @@ internal sealed class DBJCfg
 #if DBJ_TRACE
             Log.info($"cfg {DBJcore.Whoami()}() -- path: '{path_}'  key:'{section_.Key}', val: '{section_.Value}'");
 #endif
-            return section_.Get<T>();
+            if (typeof(T).IsValueType && default_ == null)
+            {
+                // Handle value types with null default values
+                default_ = Activator.CreateInstance<T>();
+            }
+            return section_.Get<T>() ?? default_ ;
         }
         catch (Exception x_)
         {
