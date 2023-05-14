@@ -1,14 +1,16 @@
 <h1>DBJ CORE</h1>
 
 - [Why?](#why)
-- [GitHub Organization Folder](#github-organization-folder)
+- [GitHub Organization Folder aka Why not Git Submodules](#github-organization-folder-aka-why-not-git-submodules)
   - [Working with C# and liking VS Code?](#working-with-c-and-liking-vs-code)
+  - [The Actuall Usage](#the-actuall-usage)
 - [Just utilities](#just-utilities)
 - [Logging](#logging)
   - [Requirements](#requirements)
   - [Usage](#usage)
 - [Dbj Core Configuration](#dbj-core-configuration)
   - [Requirements](#requirements-1)
+  - [Usage](#usage-1)
 
 
 ## Why?
@@ -16,32 +18,11 @@ DI aka "Dependancy Injection" is basicaly waste of time. Complex OOP with no obv
 
  **This is not assembly. This is code reuse. Gasp!**
 
-## GitHub Organization Folder
-
-We simply do not use Github submodules. We group projects (repositories) in GIT HUB organizations. And this is how we clone them, and keep them together, and reference them from each other, under a commom "orgnization folder" root.
-
-That is important since we use Visual Studio solutions, elsewhere on development machines, from where we include other projects, but from the same organization folder. Under which the organization project are cloned.
-
-Example. The '[valstat](https://github.com/valstat)` organization folder happens to be: 
-```
-D:\DEVL\GITHUB\VALSTAT
-```
-At the moment we have three repositories in that organization cloned in there: 
-```
-D:\DEVL\GITHUB\VALSTAT
-├───dbjcore
-├───valstat_csharp
-└───valstat_dll_specimen
-```
-Thus any solution in there might reference any project under the same organization folder.
-
-`valstat_csharp\valstatcsharp.sln` uses `valstat_dll_specimen\valstat_dll.vcxproj` and `dbjcore\dbjcore.shproj`.
-
-to build `valstatcsharp.sln` you need to clone those two other repositories as well. Under the same organization folder. No submodules required.
+## GitHub Organization Folder aka Why not Git Submodules
 
 ### [Working with C# and liking VS Code?](https://code.visualstudio.com/docs/languages/csharp)
  
-If you will allow us to repeat the official advice?
+Don't. Use Visual Studio. Will you allow us to repeat the official advice?
 
  ***If you want the best possible experience for .NET / C# projects and development on Windows in general, we recommend you use Visual Studio Community.***
 
@@ -52,6 +33,31 @@ If you will allow us to repeat the official advice?
  There are people who do not mix vscode and vstudio and use one or the other. We find both of them lacking some features. Found in the other one.
 
  > Generally you are encouraged to browse through the code. Decumentation is coming along. Slowly.
+
+ ### The Actuall Usage 
+
+We simply do not use Github submodules. We group projects (repositories) in GIT HUB *organizations folders*. And this is how we clone them, and keep them together, and reference them from each other, under a commom "orgnization folder" root.
+
+That is important since we use Visual Studio solutions, elsewhere on development machines, from where we include other projects, but from the same organization folder. Under which the organization project are cloned.
+
+Example. The '[valstat](https://github.com/valstat)` organization folder happens to be (on my machine): 
+```
+D:\DEVL\GITHUB\VALSTAT
+```
+That is the "organization folder". Organizatio folder is just a local folder. At the moment, I have three repositories in that organization folder cloned like so: 
+```
+D:\DEVL\GITHUB\VALSTAT
+├───dbjcore (contains dbjcore.shproj)
+├───valstat_csharp (uses dbjcore as "shared code") (sln is in here)
+└───valstat_dll_specimen (uses dbjcore as "shared code")
+```
+"Shared" is Visual Studio shared project concept for simply sharing the code. I is under the organization folder.
+
+`valstat_csharp\valstatcsharp.sln` uses `valstat_dll_specimen\valstat_dll.vcxproj` and `dbjcore\dbjcore.shproj`.
+
+to build `valstatcsharp.sln` you need to clone those two other repositories as well. Under the same organization folder. No submodules required.
+
+
 
 ## Just utilities
 
