@@ -1,33 +1,42 @@
 <h1>DBJ CORE</h1>
 
 - [Why?](#why)
-- [GitHub Organization Folder aka Why not Git Submodules](#github-organization-folder-aka-why-not-git-submodules)
-    - [Working with C# and liking VS Code?](#working-with-c-and-liking-vs-code)
+- [Folder Organization aka Why not Git Submodules](#folder-organization-aka-why-not-git-submodules)
+    - [Working with C# and liking VS Code (a lot)?](#working-with-c-and-liking-vs-code-a-lot)
   - [The Actuall Usage](#the-actuall-usage)
-    - [Just utilities](#just-utilities)
+  - [Side advice](#side-advice)
 - [Logging](#logging)
-    - [Requirements](#requirements)
-    - [Usage](#usage)
-    - [Further usage](#further-usage)
+  - [Requirements](#requirements)
+  - [Usage](#usage)
+  - [Further usage](#further-usage)
+  - [Those pesky log levels](#those-pesky-log-levels)
 - [Dbj Core Configuration](#dbj-core-configuration)
   - [Requirements](#requirements-1)
   - [Usage](#usage-1)
 
 
 # Why?
-DI aka "Dependancy Injection" is basicaly waste of time. Complex OOP with no obvious cause of existence. Thus we have developed this little "dbj net core", from where we use configuration, loggin and little utilities we have collected thorough years. All opinionated.
+<h2>&nbsp;</h2>
+
+![](media/supersimplecode.png)
+<h2>&nbsp;</h2>
+To add. DI aka "Dependancy Injection" is basicaly waste of time. Complex OOP with no obvious cause of existence. Especially for simple one man team projects. Thus we have developed this little "dbj net core", from where we use configuration, loggin and little utilities we have collected thorough years. 
+
+<h2>&nbsp;</h2>
 
  **This is not assembly. This is code reuse. Gasp!**
 
-# GitHub Organization Folder aka Why not Git Submodules
+<h2>&nbsp;</h2>
 
-### [Working with C# and liking VS Code?](https://code.visualstudio.com/docs/languages/csharp)
+# Folder Organization aka Why not Git Submodules
+
+### [Working with C# and liking VS Code (a lot)?](https://code.visualstudio.com/docs/languages/csharp)
  
 Don't. Use Visual Studio. Will you allow us to repeat the official advice?
 
  ***If you want the best possible experience for .NET / C# projects and development on Windows in general, we recommend you use Visual Studio Community.***
 
- But, not all is lost. `dotnet` cli command is your friend. We find it very easy to quickly setup the project using `dotnet`. Our advise is:
+ But, not all is lost. `dotnet` cli command is your friend. We find it very easy to quickly setup the project using `dotnet`. Our advice is:
 
  > VStudio for building and debugging. 'dotnet' cli for easy setup and VSCode for git.
 
@@ -45,24 +54,24 @@ Example. The '[valstat](https://github.com/valstat)` organization folder happens
 ```
 D:\DEVL\GITHUB\VALSTAT
 ```
-That is the "organization folder". Organizatio folder is just a local folder. At the moment, I have three repositories in that organization folder cloned like so: 
+That is the "organization folder". Organizatio folder is just a local root folder. At the moment, I have three repositories in that organization folder cloned like so: 
 ```
 D:\DEVL\GITHUB\VALSTAT
 ├───dbjcore (contains dbjcore.shproj)
 ├───valstat_csharp (uses dbjcore as "shared code") (sln is in here)
 └───valstat_dll_specimen (uses dbjcore as "shared code")
 ```
-"Shared" is Visual Studio shared project concept for simply sharing the code. I is under the organization folder.
+"Shared" is Visual Studio shared project mechanism for simply sharing the code. 
 
 `valstat_csharp\valstatcsharp.sln` uses `valstat_dll_specimen\valstat_dll.vcxproj` and `dbjcore\dbjcore.shproj`.
 
 to build `valstatcsharp.sln` you need to clone those two other repositories as well. Under the same organization folder. No submodules required.
 
+Beware of the siren call of the git submodules. Resist.
 
+## Side advice
 
-### Just utilities
-
-We use, wherever we can this optimization:
+We use, wherever we can this .NET optimization:
 ```c#
 [MethodImpl(MethodImplOptions.AggressiveInlining)]
 ```
@@ -70,7 +79,7 @@ It is not a magic wand. Just a hint to a compiler.
 For more just look into the `DBJcore`.
 
 # Logging
-### Requirements
+## Requirements
 Yes [Serilog](https://github.com/serilog/serilog) is better; tens (hunderds) of milions are using [Serilog](https://serilog.net). Loggin utils in here do require executing these 3 cli commands, in the host project:
 
 ```
@@ -86,8 +95,8 @@ Which will add these 3 lines in the csproj file:
     <PackageReference Include="serilog.sinks.file" Version="5.0.0" />
   </ItemGroup>
 ```
-### Usage
-Calling through 4 static methods:
+## Usage
+Calling is through 4 static methods:
 ```c#
 using static DBJLog;
 
@@ -103,7 +112,7 @@ If used log file will be found here:
 ```
 That might enrage you. Feel free to go into the code and change it. 
 
-### Further usage
+## Further usage
 
 On the top of the dbjcore source: 
 
@@ -113,8 +122,14 @@ On the top of the dbjcore source:
 
 DBJLog by default otuputs to console as that is the way for container logging.
 
+## Those pesky log levels
+
+DBJLog constructor contains simple check to show you what are they and what is the default DEBUG situation in respect to the log levels.
+
+After a while you can simply switch off that in your debug builds. Readng the code you already understand how.
+
 # Dbj Core Configuration 
-Contary to popular belief (prevailing among .NET Lemmings population) .NET core json configuration does not require any specialy named json config files. Any name will do, as long as you make and use your own configuration routines. We just happen to call ours: `appsettings.json`. 
+Contrary to popular belief (prevailing among .NET Lemmings population) .NET core json configuration does not require any specialy named json config files. Any name will do, as long as you make and use your own configuration routines. We just happen to call ours: `appsettings.json`. 
 
 ## Requirements
 
@@ -138,7 +153,7 @@ And it is obvious why. And we need to add these to the `csproj` file (of the hos
 </ItemGroup>
 ```
 ## Usage
-`DBJCfg.FileName` is the name of the json cfg file (hint: `appsettings.json` ). Content required in this case is:
+`DBJCfg.FileName` is the name of the json cfg file (hint: `appsettings.json` ). Content required in this readme file explanations, is:
 ```json
 // appsettings.json
 {
