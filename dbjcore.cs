@@ -1,3 +1,5 @@
+#define DBJLOG_LEVEL_CHECK
+
 #nullable enable
 // #define LOG_TO_FILE
 // above redirects Writeln to log.info and Writerr to log.error
@@ -247,20 +249,28 @@ internal sealed class DBJLog : IDisposable
 #endif
 
 #if DEBUG
+#if DBJLOG_LEVEL_CHECK
         Serilog.Events.LogEventLevel ? what_level = enabled_level();
-        what_level = null ;
 
+        Serilog.Log.Debug(" ");
+        Serilog.Log.Debug("dbj_core: Log level check. Using Serilog");
+        Serilog.Log.Debug(" ");
         Serilog.Log.Fatal("FATAL is on the top level");
         Serilog.Log.Error("ERROR is bellow FATAL");
         Serilog.Log.Warning("WARNING is bellow ERROR");
         Serilog.Log.Information("INFORMATION is bellow WARNING");
         Serilog.Log.Debug("DEBUG is bellow INFORMATION");
         Serilog.Log.Verbose("VERBOSE is on the bottom level");
+        Serilog.Log.Debug(" ");
+        Serilog.Log.Debug("dbj_core: this is DEBUG build and default is .MinimumLevel.Debug() ");
+        Serilog.Log.Debug("dbj_core: result of enabled_level() is: " + what_level.ToString() );
+        Serilog.Log.Debug(" ");
 
+        what_level = null;
         // if minimum level is DEBUG only Verbose will not be shown
         // https://github.com/serilog/serilog/wiki/Configuration-Basics#minimum-level
-        // default level is Information that is considered for a production system
-
+        // default level is Information; considered for a production 
+#endif // DBJLOG_LEVEL_CHECK
 #endif
 
     } // Main()
@@ -323,25 +333,21 @@ internal sealed class DBJLog : IDisposable
     // log.info("where is this going then?");
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void debug(string format, params object[] args) {
-        if (logger.enabled_level() == Serilog.Events.LogEventLevel.Debug )
             dispatch_((msg_) => logger.debug_(msg_), format, args);
     }
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void info(string format, params object[] args)
     {
-        if (logger.enabled_level() == (Serilog.Events.LogEventLevel.Information))
             dispatch_((msg_) => logger.info_(msg_), format, args);
     }
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void error(string format, params object[] args)
     {
-        if (logger.enabled_level() == (Serilog.Events.LogEventLevel.Error))
             dispatch_((msg_) => logger.error_(msg_), format, args);
     }
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void fatal(string format, params object[] args)
     {
-        if (logger.enabled_level() == (Serilog.Events.LogEventLevel.Fatal))
             dispatch_((msg_) => logger.fatal_(msg_), format, args);
     }
     //-----------------------------------------------------------------
