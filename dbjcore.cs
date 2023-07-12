@@ -1,4 +1,13 @@
+/*
+ This code is (c) by dbj@dbj.org, CC BY SA 4.0
+*/
+// we log to console, that is all that one needs
+// #define LOG_TO_FILE
+#if DEBUG
 #define DBJLOG_LEVEL_CHECK
+#endif
+
+#region usings_declarations
 
 #nullable enable
 // #define LOG_TO_FILE
@@ -8,6 +17,7 @@
 //using System;
 //using System.Diagnostics;
 //using System.IO;
+using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
@@ -16,21 +26,25 @@ using System.Text;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using Microsoft.Extensions.Configuration;
+
+// do this in the folder where the host project csproj is
+// dbjcore is code reused
+// $ dotnet add package Serilog
+// $ dotnet add package Serilog.Sinks.Console
+// $ dotnet add package Serilog.Sinks.File
 using Serilog;
 
-//namespace dbj ;
-
 // use like this:
-// using static dbjcore;
+// using static DBJcore;
 // after which you can just use the method names 
-// from the class utl in here
-// without a class name and dot in front, for example:
+// from the class DBJcore in here
+// without a class name and dot in the front, for example:
 // Writeln( Whoami() );
 
-// keep it in the global names space
-// namespace dbjcore;
+#endregion usings_declarations
 
 #region common utilities
+// we keep it in the global names space
 internal sealed class DBJcore
 {
 
@@ -88,7 +102,7 @@ internal sealed class DBJcore
         [CallerLineNumber] int lineNumber = 0)
     {
         // make and return a record
-        return new (filePath, lineNumber );
+        return new(filePath, lineNumber);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -101,7 +115,7 @@ internal sealed class DBJcore
     /// <summary>
     /// Return the name of this assebly or executable
     /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static string ThisName()
     {
         return Assembly.GetExecutingAssembly().GetName().FullName;
@@ -180,11 +194,13 @@ internal sealed class DBJcore
 ///////////////////////////////////////////////////////////////////////////////////////
 
 /*
+do this in the folder where the host project csproj is
+
 $ dotnet add package Serilog
 $ dotnet add package Serilog.Sinks.Console
 $ dotnet add package Serilog.Sinks.File
 */
-internal sealed class DBJLog : IDisposable 
+internal sealed class DBJLog : IDisposable
 {
     public readonly static string text_line = "-------------------------------------------------------------------------------";
     public readonly static string app_friendly_name = AppDomain.CurrentDomain.FriendlyName;
@@ -197,9 +213,10 @@ internal sealed class DBJLog : IDisposable
         }
     }
 
-    // is thi a trick? hack? cludge?
+    // is this a trick? hack? a cludge? no.
     // this method is deliberately not static
     // so that instance must be made to use it
+    // Why? :wink:
     public Serilog.Events.LogEventLevel enabled_level()
     {
         if (Serilog.Log.IsEnabled(Serilog.Events.LogEventLevel.Verbose)) return Serilog.Events.LogEventLevel.Verbose;
@@ -209,7 +226,9 @@ internal sealed class DBJLog : IDisposable
         if (Serilog.Log.IsEnabled(Serilog.Events.LogEventLevel.Error)) return Serilog.Events.LogEventLevel.Error;
         if (Serilog.Log.IsEnabled(Serilog.Events.LogEventLevel.Fatal)) return Serilog.Events.LogEventLevel.Fatal;
 
-        throw new Exception( "method " + DBJcore.Whoami() + ": This should never happen");
+        // this is true example when exception has a role
+        // in exceptional situations only
+        throw new Exception("method " + DBJcore.Whoami() + ": This should never happen");
 
     }
 
@@ -222,11 +241,11 @@ internal sealed class DBJLog : IDisposable
     public DBJLog()
     {
         // https://github.com/serilog/serilog/wiki/Configuration-Basics#minimum-level
-        // default level is Information that is considered for a production system
+        // default level is Information and that is considered for a production system
 
-        // defulat is not file but console logging
-        // container logging is to console
-        // that goes to container logs and is collected by log agents dispatchers
+        // default is not file but console logging
+        // all that container logging needs is to console only
+        // that goes to container logs and is collected by log agents/dispatchers
 #if LOG_TO_FILE
         string log_file_path_ = string.Format(log_file_path_template_, AppContext.BaseDirectory, app_name);
         Serilog.Log.Logger = new LoggerConfiguration()
@@ -239,6 +258,10 @@ internal sealed class DBJLog : IDisposable
         Serilog.Log.Logger = new LoggerConfiguration()
 #if DEBUG
     .MinimumLevel.Debug()
+#else
+    // WARNING: Serilog default level is Info, we move it to Fatal
+    // in production we want only fatal messages
+    .MinimumLevel.Fatal()
 #endif
     .WriteTo.Console()
     .CreateLogger();
@@ -250,7 +273,8 @@ internal sealed class DBJLog : IDisposable
 
 #if DEBUG
 #if DBJLOG_LEVEL_CHECK
-        Serilog.Events.LogEventLevel ? what_level = enabled_level();
+        // we found this as an very wellcome de-confuzor for many users
+        Serilog.Events.LogEventLevel? what_level = enabled_level();
 
         Serilog.Log.Debug(" ");
         Serilog.Log.Debug("dbj_core: Log level check. Using Serilog");
@@ -263,7 +287,9 @@ internal sealed class DBJLog : IDisposable
         Serilog.Log.Verbose("VERBOSE is on the bottom level");
         Serilog.Log.Debug(" ");
         Serilog.Log.Debug("dbj_core: this is DEBUG build and default is .MinimumLevel.Debug() ");
-        Serilog.Log.Debug("dbj_core: result of enabled_level() is: " + what_level.ToString() );
+        Serilog.Log.Debug("dbj_core: result of enabled_level() is: " + what_level.ToString());
+        Serilog.Log.Debug(" ");
+        Serilog.Log.Debug("HINT: In production we want fatal level only.");
         Serilog.Log.Debug(" ");
 
         what_level = null;
@@ -298,14 +324,16 @@ internal sealed class DBJLog : IDisposable
 #endif
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal void debug_(string msg_) { Serilog.Log.Debug(msg_); 
+    internal void debug_(string msg_)
+    {
+        Serilog.Log.Debug(msg_);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal void info_(string msg_) { Serilog.Log.Information(msg_); }
-    [MethodImpl(MethodImplOptions.AggressiveInlining)] 
+    internal void info_(string msg_) { Serilog.Log.Information(msg_); }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal void error_(string msg_) { Serilog.Log.Error(msg_); }
-    [MethodImpl(MethodImplOptions.AggressiveInlining)] 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal void fatal_(string msg_) { Serilog.Log.Fatal(msg_); }
 
     // this is where log instance is made on demand once and not before called the first time
@@ -316,7 +344,7 @@ internal sealed class DBJLog : IDisposable
     static public DBJLog logger { get { return lazy_log.Value; } }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void dispatch_( 
+    private static void dispatch_(
         Action<string> log_, string format, params object[] args
         )
     {
@@ -332,23 +360,24 @@ internal sealed class DBJLog : IDisposable
     // repeated calls will reuse the same instance
     // log.info("where is this going then?");
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void debug(string format, params object[] args) {
-            dispatch_((msg_) => logger.debug_(msg_), format, args);
+    public static void debug(string format, params object[] args)
+    {
+        dispatch_((msg_) => logger.debug_(msg_), format, args);
     }
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void info(string format, params object[] args)
     {
-            dispatch_((msg_) => logger.info_(msg_), format, args);
+        dispatch_((msg_) => logger.info_(msg_), format, args);
     }
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void error(string format, params object[] args)
     {
-            dispatch_((msg_) => logger.error_(msg_), format, args);
+        dispatch_((msg_) => logger.error_(msg_), format, args);
     }
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void fatal(string format, params object[] args)
     {
-            dispatch_((msg_) => logger.fatal_(msg_), format, args);
+        dispatch_((msg_) => logger.fatal_(msg_), format, args);
     }
     //-----------------------------------------------------------------
     ~DBJLog()
@@ -473,7 +502,7 @@ internal sealed class DBJCfg
                 // Handle value types with null default values
                 default_ = Activator.CreateInstance<T>();
             }
-            return section_.Get<T>() ?? default_ ;
+            return section_.Get<T>() ?? default_;
         }
         catch (Exception x_)
         {
@@ -502,6 +531,44 @@ internal sealed class DBJCfg
 } // Config standardorum superiorum
 
 #endregion configuration
+
+#region queued_console
+
+// https://stackoverflow.com/a/3670628
+// using System.Collections.Concurrent;
+
+namespace dbj
+{
+    public static class QueuedConsole
+    {
+        private static BlockingCollection<string> m_Queue = new BlockingCollection<string>();
+
+        static QueuedConsole()
+        {
+            var thread = new Thread(
+              () =>
+              {   // this line works, unfortunately
+                  while (true) Console.WriteLine(m_Queue.Take());
+              });
+            thread.IsBackground = true;
+            thread.Start();
+        }
+
+        public static void Add(string value)
+        {
+            m_Queue.Add(value);
+        }
+
+        public static void Add(Microsoft.Data.SqlClient.SqlException sqx)
+        {
+            m_Queue.Add(
+            string.Format("SQL SRV name: {0}\nSQL Exception code: {1}\nmessage: {2}", sqx.Server, sqx.ErrorCode, sqx.Message));
+        }
+    }
+
+} // dbj
+
+#endregion queued_console
 
 
 
