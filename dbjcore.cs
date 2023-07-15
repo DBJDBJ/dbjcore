@@ -25,6 +25,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
 using Microsoft.Extensions.Configuration;
 
 // do this in the folder where the host project csproj is
@@ -33,6 +34,7 @@ using Microsoft.Extensions.Configuration;
 // $ dotnet add package Serilog.Sinks.Console
 // $ dotnet add package Serilog.Sinks.File
 using Serilog;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 // use like this:
 // using static DBJcore;
@@ -77,6 +79,30 @@ internal sealed class DBJcore
     public static string local_now()
     {
         return DateTime.Now.ToLocalTime().ToString();
+    }
+
+    // Console.WriteLine("Hello my UTC timestamp      : " + iso8601(1));
+    // Console.WriteLine("Hello iso8601 with 'T'      : " + iso8601(2));
+    // Console.WriteLine("Hello full iso8601          : " + iso8601(3));
+    // Console.WriteLine("Hello  my local timestamp   : " + iso8601());
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static string iso8601(short kind_ = 0)
+    {
+        switch (kind_)
+        {
+            case 1:
+                // no 'T' fromat e.g. "2023-07-15 05:56:27"
+                return DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture);
+            case 2:
+                // official 'T' format e.g.  2023-07-15T07:56:27
+                return DateTime.Now.ToLocalTime().ToString("s", System.Globalization.CultureInfo.InvariantCulture);
+            case 3:
+                // a sortable date/time pattern; conforms to ISO 8601.
+                return DateTime.Now.ToLocalTime().ToString("o", System.Globalization.CultureInfo.InvariantCulture);
+            default:
+                // default e.g. 2023-07-15 07:56:27
+                return DateTime.Now.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture);
+        }
     }
 
     /// <summary>
@@ -537,32 +563,100 @@ internal sealed class DBJCfg
 // https://stackoverflow.com/a/3670628
 // using System.Collections.Concurrent;
 
+/*
+ * When in container, for logging code needs only to write to STDOUT
+ */
 namespace dbj
 {
-    public static class QueuedConsole
+    internal static class Kontalog
     {
         private static BlockingCollection<string> m_Queue = new BlockingCollection<string>();
 
-        static QueuedConsole()
+        static Kontalog()
         {
             var thread = new Thread(
               () =>
-              {   // this line works, unfortunately
+              {   // this line works, unfortunately ;)
                   while (true) Console.WriteLine(m_Queue.Take());
               });
             thread.IsBackground = true;
             thread.Start();
         }
 
-        public static void Add(string value)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Add(string format, params object[] args)
         {
-            m_Queue.Add(value);
+            if (args.Length < 1)
+                m_Queue.Add(format);
+            else
+            {
+                m_Queue.Add(string.Format(format, args));
+            }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Add(Microsoft.Data.SqlClient.SqlException sqx)
         {
             m_Queue.Add(
-            string.Format("SQL SRV name: {0}\nSQL Exception code: {1}\nmessage: {2}", sqx.Server, sqx.ErrorCode, sqx.Message));
+            string.Format("[" + DBJcore.iso8601() + "]" + "SQL SRV name: {0}\nSQL Exception code: {1}\nmessage: {2}", sqx.Server, sqx.ErrorCode, sqx.Message));
+        }
+
+        // and  now lets turn this into the 'logging lib'
+        public enum Level
+        {
+            fatal, error, debug, info
+        }
+
+        // there are no levels ordering in here
+        // if in Production only fatal messages will be logged
+        public static bool Production { get {
+#if DEBUG
+                return false;
+#else
+                return true;
+#endif
+            } }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void log_(Level lvl_, string format, params object[] args)
+        {
+            if (Production)
+            {
+                if (lvl_ > Level.fatal) return;
+            }
+
+            var prefix_ = "[" + DBJcore.iso8601() + "|" + lvl_.ToString() + "]";
+
+            if (args.Length < 1)
+                m_Queue.Add(prefix_ + format);
+            else
+            {
+                m_Queue.Add(prefix_ + string.Format(format, args));
+            }
+        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void fatal(string format, params object[] args)
+        {
+            log_(Level.fatal, format, args);
+        }
+
+        // error and debug work when fatal or info are not the levels
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void error(string format, params object[] args)
+        {
+                log_(Level.error, format, args);
+        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void debug(string format, params object[] args)
+        {
+                log_(Level.debug, format, args);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void info(string format, params object[] args)
+        {
+            // always
+            log_(Level.info, format, args);
         }
     }
 
