@@ -6,6 +6,7 @@
 #if DEBUG
 #define DBJLOG_LEVEL_CHECK
 #endif
+//#define KONTALOG_HANDLES_SQLSVR_CLIENT_EXCEPTION
 
 #region usings_declarations
 
@@ -17,6 +18,7 @@
 //using System;
 //using System.Diagnostics;
 //using System.IO;
+using System;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
@@ -25,10 +27,15 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
+using System.Threading;
+using Microsoft.Extensions.Configuration;
+#if KONTALOG_HANDLES_SQLSVR_CLIENT_EXCEPTION
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
 using Microsoft.Extensions.Configuration;
+// need Microsoft.Data.SqlClient.SqlException
+#endif
 
-// do this in the folder where the host project csproj is
+// for adding Serilog must do this in the folder where the host project csproj is
 // dbjcore is code reused
 // $ dotnet add package Serilog
 // $ dotnet add package Serilog.Sinks.Console
@@ -45,9 +52,11 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 
 #endregion usings_declarations
 
+namespace dbjcore;
+
 #region common utilities
 // we keep it in the global names space
-internal sealed class DBJcore
+public sealed class DBJcore
 {
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -226,10 +235,10 @@ $ dotnet add package Serilog
 $ dotnet add package Serilog.Sinks.Console
 $ dotnet add package Serilog.Sinks.File
 */
-internal sealed class DBJLog : IDisposable
+public sealed class DBJLog : System.IDisposable
 {
     public readonly static string text_line = "-------------------------------------------------------------------------------";
-    public readonly static string app_friendly_name = AppDomain.CurrentDomain.FriendlyName;
+    public readonly static string app_friendly_name = System.AppDomain.CurrentDomain.FriendlyName;
 
     static string app_name
     {
@@ -363,7 +372,7 @@ internal sealed class DBJLog : IDisposable
     internal void fatal_(string msg_) { Serilog.Log.Fatal(msg_); }
 
     // this is where log instance is made on demand once and not before called the first time
-    static Lazy<DBJLog> lazy_log = new Lazy<DBJLog>(() => new DBJLog());
+    static System.Lazy<DBJLog> lazy_log = new Lazy<DBJLog>(() => new DBJLog());
     private bool disposedValue;
 
     // use this to create the DBJLog instance (through its contructor) at least once 
@@ -439,6 +448,7 @@ internal sealed class DBJLog : IDisposable
         Dispose(disposing: true);
         GC.SuppressFinalize(this);
     }
+
 }
 
 #endregion logging
@@ -470,7 +480,7 @@ followed with section that adds the dot net components to use from the code
 <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="7.0.0" />
 </ItemGroup>
 */
-internal sealed class DBJCfg
+public sealed class DBJCfg
 {
     IConfiguration config;
     readonly string config_file_name = string.Empty;
@@ -560,15 +570,16 @@ internal sealed class DBJCfg
 
 #region queued_console
 
+// Kontalog means Kontainer Logger
+// and it is queued. But do not attack it, just use it please.
+//
 // https://stackoverflow.com/a/3670628
 // using System.Collections.Concurrent;
+//
+// When in container, for logging code needs only to write to STDOUT
+//
 
-/*
- * When in container, for logging code needs only to write to STDOUT
- */
-namespace dbj
-{
-    internal static class Kontalog
+    public static class Kontalog
     {
         private static BlockingCollection<string> m_Queue = new BlockingCollection<string>();
 
@@ -577,7 +588,7 @@ namespace dbj
             var thread = new Thread(
               () =>
               {   // this line works, unfortunately ;)
-                  while (true) Console.WriteLine(m_Queue.Take());
+                  while (true) System.Console.WriteLine(m_Queue.Take());
               });
             thread.IsBackground = true;
             thread.Start();
@@ -594,13 +605,14 @@ namespace dbj
             }
         }
 
+#if KONTALOG_HANDLES_SQLSVR_CLIENT_EXCEPTION
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Add(Microsoft.Data.SqlClient.SqlException sqx)
         {
             m_Queue.Add(
             string.Format("[" + DBJcore.iso8601() + "]" + "SQL SRV name: {0}\nSQL Exception code: {1}\nmessage: {2}", sqx.Server, sqx.ErrorCode, sqx.Message));
         }
-
+#endif
         // and  now lets turn this into the 'logging lib'
         public enum Level
         {
@@ -660,7 +672,7 @@ namespace dbj
         }
     }
 
-} // dbj
+
 
 #endregion queued_console
 

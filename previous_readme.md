@@ -11,6 +11,7 @@
   - [dbjcore config requirements](#dbjcore-config-requirements)
   - [Usage](#usage-1)
 - [Appendix A](#appendix-a)
+    - [Beware of the siren call of the git submodules. Resist.](#beware-of-the-siren-call-of-the-git-submodules-resist)
   - [Side advice (out of the blue)](#side-advice-out-of-the-blue)
 
 
@@ -27,13 +28,15 @@ To add. DI aka "Dependency Injection" is basically waste of time. Complex OOP wi
 
 <h3>&nbsp;</h3>
 
- **This is assembly.**
+ **This is not assembly. This is code reuse. Gasp!**
 
- **DBJ Core is just one cs files. Gasp!**
+ **DBJ Core is just one cs files. Gasp! (again)**
 
- **To re-use it, "git it out" (this repo) somewhere handy and do the `project reference` in your solution project(s)**
+ **To re-use it, "git it out" (this repo) somewhere handy and do the `shared project reference` in your solution project(s)**
 
-  You already know how to add the project reference. Do you?
+ ![](media/add_shared_proj_ref.png)
+
+ You already know how to add the shared project reference. Do you?
 
 **And you are done**
 
@@ -166,6 +169,8 @@ hint: Yes, in the .NET universe json files can have comments too.
 
 # Appendix A
 
+**For the people who fear simplicity we welcome them. We have made this appendix for them**
+
 You are [working with C# and liking VS Code (a lot)?](https://code.visualstudio.com/docs/languages/csharp)
  
 Please don't. Use Visual Studio. Allow us to repeat the official advice from the VS Code page:
@@ -179,7 +184,16 @@ Please don't. Use Visual Studio. Allow us to repeat the official advice from the
 
  There are people who do not mix vscode and vstudio and use one or the other. We find both of them lacking some features. Found in the other one.
 
-We do not like multithreading, we like multiprocessing. Thus we do not use dbjcore in presence of multiple threads. 
+We have suffered github submodules in the past. No point in hiding it :wink:
+
+--- 
+***You are strongly advised to use VisualStudio and use `dbjcore.shproj` found in here.***
+
+---
+**We simply do not use Github submodules**
+
+### Beware of the siren call of the git submodules. Resist.
+shared project, where else.  This is also possible because we do not like multithreading, we like multiprocessing. Thus we do not use dbjcore in presence of multiple threads. 
 
 And we build inside "fat containers". Container with decoupled processes inside.  
 
