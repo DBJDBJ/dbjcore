@@ -1,3 +1,5 @@
+> NOTE: this readme like everything in here is W.I.P.
+
 <h1>DBJ CORE</h1>
 
 - [Why?](#why)
