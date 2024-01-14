@@ -1,3 +1,5 @@
+> NOTE: this readme like everything in here is W.I.P.
+
 <h1>DBJ CORE</h1>
 
 # Why?
@@ -78,4 +80,4 @@ We use, wherever we can this .NET optimization:
 ```
 It is not a magic wand. Just a hint to a compiler. But very effective.
 
-Farewell HINT: Code simple. If can not, always check your clever code with https://sharplab.io . Always.
+<hr/>
