@@ -60,8 +60,21 @@ public sealed class DBJcore
     /// enitrely different
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static string my_domain(bool exe_name_ = true )
+    public static string my_domain(bool exe_name_ = true)
     {
+        /* <ROADMAP>
+         * System.AppDomain.CurrentDomain.FriendlyName 
+         * - Returns the filename with extension (e.g. MyApp.exe).
+
+System.Diagnostics.Process.GetCurrentProcess().ProcessName 
+        - Returns the filename without extension (e.g. MyApp).
+
+System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName 
+        - Returns the full path and filename (e.g. C:\Examples\Processes\MyApp.exe). 
+        You could then pass this into System.IO.Path.GetFileName() 
+        or System.IO.Path.GetFileNameWithoutExtension() 
+        to achieve the same results as the above.
+         */
         if (exe_name_ == true)
         {
             return System.AppDomain.CurrentDomain.FriendlyName;
@@ -80,14 +93,14 @@ public sealed class DBJcore
     /// aka this assembly
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static string ThisName(bool this_name = false )
+    public static string ThisName(bool this_name = false)
     {
         if (this_name == true)
         {
             return Assembly.GetExecutingAssembly().GetName().FullName;
         }
         return Assembly.GetCallingAssembly().GetName().FullName;
-        
+
     }
 
     /// <summary>
