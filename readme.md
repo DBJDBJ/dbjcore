@@ -8,40 +8,32 @@ I have many (many) years of software building in my past. and this is my current
 
 
 ![](media/supersimplecode.png)
-<h3>&nbsp;</h3>
-To add to the above. I am pretty sure `DI` aka "Dependency Injection" is basically waste of time. Complex OOP with no obvious cause of existence. Especially for simple one man team projects. 
 
-Oh an yes, `OOP` is vaster of time too.
+<br/>
+To add to the above. I am pretty sure `DI` aka "Dependency Injection" is basically waste of time. Complex OOP with no obvious cause of existence. Especially for simple one man team projects. Oh and yes, `OOP` is waste of your time. In here there is no interfaces and no DI.
 
+<br/>
 Sometimes I am paid to use C#. Thus I have developed this little "dbj net core", from where I/we use configuration, logging and little utilities I have collected through the years. 
 
-> How many years actually? I/we use `C#` commercially since 2001.
->
+<br/>
+How many years actually? I/we use `C#` commercially since 2001.
 
->
-> Who is "we"? Basically it is much simpler if I just skip that question
-> 
+<br/>
+Who is "we"? Basically, it is much simpler if I just skip that question.
 
 ## DBJ Core Usage
 
- **This is .NET assembly.** Do we need to say more? 2023Q4 it builds with .NET7. Feel free to try .NET8
+ **This is .NET assembly.** Do we need to say more? 2023Q4 it builds with .NET7. By no means, feel free to try .NET8
 
 You already know how to add the project reference. Do you?
 
 **And you are done**
 
->
-> &nbsp;
-> 
-> **In here there is no interfaces and no DI.**
 > 
 > Generally you are encouraged to browse through the code. 
 > 
 > Documentation is coming along. Slowly. But surely.
 > 
-> &nbsp;
-> 
-
 
 # V Studio or VS Code?
 
