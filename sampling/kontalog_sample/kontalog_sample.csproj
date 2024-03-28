@@ -11,4 +11,11 @@
     <ProjectReference Include="..\..\dbjcore.csproj" />
   </ItemGroup>
 
+  <!-- Required for the configurator to work -->
+  <ItemGroup>
+    <Content Include="appsettings.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
 </Project>

@@ -46,6 +46,7 @@ config specimen used bellow:
 ```
 Usage is simple. There is basically one static method on the `DBJCfg` class. 
 ```c#
+
 // example using the config file above
  var max_block_count = DBJCfg.get<short>("max_block_count", 0  );
 ```

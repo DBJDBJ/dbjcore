@@ -90,8 +90,8 @@ public static class Kontalog
 
                   // Slow down consumer just a little to cause
                   // collection to fill up faster, and lead to "AddBlocked"
-                  const int spin_wait = 0xFFFFF;
-                  Thread.SpinWait(spin_wait);
+                  //const int spin_wait = 0xFFFFF;
+                  //Thread.SpinWait(spin_wait);
               }
           });
         thread.IsBackground = true;

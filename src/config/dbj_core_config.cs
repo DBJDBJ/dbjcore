@@ -76,13 +76,15 @@ followed with section that adds the dot net components to use from the code
 public sealed class DBJCfg
 {
     IConfiguration config;
-    readonly string config_file_name = string.Empty;
+    public readonly string config_file_name = string.Empty;
+
+    
     /*
     config file name is completely 100% arbitrary
     it is hidden as def. val constructor parameter
 
     I know that is not a good thing, but I am lazy , and besides that
-    How to configure the congiguration? Externaly? Probably using the cli arguments?
+    How to configure the configuration? Externaly? Probably using the cli arguments?
     */
     public DBJCfg(string json_config_file = "appsettings.json")
     {
