@@ -1,6 +1,6 @@
 <h1>DBJ CORE KONTALOG</h1>
 
-While in container there is no logging. Gasp!
+While in container there is no logging library necessary. Gasp!
 
 Code (in any prog lang) written to run inside a container has no other obligation towards logging but to use console out stream. Aka STDOUT and STDERR.
 
