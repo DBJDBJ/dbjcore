@@ -7,9 +7,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="sampling\**" />
-    <EmbeddedResource Remove="sampling\**" />
-    <None Remove="sampling\**" />
+    <Compile Remove="deprecated\**" />
+    <EmbeddedResource Remove="deprecated\**" />
+    <None Remove="deprecated\**" />
   </ItemGroup>
 
   <ItemGroup>

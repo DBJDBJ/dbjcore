@@ -37,12 +37,26 @@ using Microsoft.Extensions.Configuration;
 // need Microsoft.Data.SqlClient.SqlException
 #endif
 
-// use like this:
+//
+// Note on usage:
+//
+// this makes visible ALL thingts
+// using dbjcore;
+// this renames Kontalog to Log
+// using Log = dbjcore.Kontalog;
+//
+// can use like this: using Utl = dbjcore.DBJcore;
+//
+// Can also use like this:
 // using static DBJcore;
 // after which you can just use the method names 
 // from the class DBJcore in here
 // without a class name and dot in the front, for example:
+//
 // Writeln( Whoami() );
+// obviously that is nice but can also provoke name clash
+// with third party code
+//
 
 #endregion usings_declarations
 

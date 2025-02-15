@@ -7,15 +7,14 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\..\dbjcore.csproj" />
-  </ItemGroup>
-
   <!-- Required for the configurator to work -->
   <ItemGroup>
     <Content Include="appsettings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\dbjcore\dbjcore.csproj" />
   </ItemGroup>
 
 </Project>
